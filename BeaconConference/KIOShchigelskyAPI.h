@@ -18,7 +18,8 @@ extern NSString *const kKIOAPICashData;
 - (void)loadBeaconInfo:(CLBeacon *)beacon updateCash:(BOOL)isUpdate mainQueue:(void(^)(NSDictionary *dataFromAPI, BOOL isDone))block;
 - (void)loadBeaconListWithUpdateCash:(BOOL)isUpdate mainQueue:(void(^)(BOOL isDone))block;
 
-
+- (BOOL)cashExists:(NSString *)fileName;
 - (NSString *)pathDataFile:(NSString *)fileName;
+- (void)deleteDataFile:(NSString *)fileName;
 
 @end

@@ -9,6 +9,7 @@
 static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 static NSString *const kKIOSplashSegueError = @"errorSeque";
 
+
 #import "KIOSplashViewController.h"
 #import "KIOShchigelskyAPI.h"
 
@@ -35,7 +36,7 @@ static NSString *const kKIOSplashSegueError = @"errorSeque";
 {
     [[KIOShchigelskyAPI sharedInstance] loadBeaconListWithUpdateCash:YES mainQueue:^(BOOL isDone) {
         if (isDone == YES) {
-            [NSThread sleepForTimeInterval:2.0];
+            [NSThread sleepForTimeInterval:1.0];
             [self performSegueWithIdentifier:kKIOSplashSegueSuccess sender:self];
         } else {
             [[[UIAlertView alloc] initWithTitle:nil message:@"No conection to api.shchigelsky or internet is swith off"

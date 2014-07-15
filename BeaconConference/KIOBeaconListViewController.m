@@ -30,27 +30,28 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
 
 @implementation KIOBeaconListViewController
 
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     
     NSString *beaconUUID = [[NSArray arrayWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIOAPICashUUID]] firstObject];
+    NSLog(@"beaconUUID: %@", beaconUUID);
     
     // TODO: use beaconUUID from server
     // Naw using temp kKIOBeaconTestUUID
     
-    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:kKIOBeaconTestUUID];
+    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:beaconUUID];
     self.beaconRegion = [[CLBeaconRegion alloc] initWithProximityUUID:uuid identifier:@"ru.kirillosipov.testBeaconRegion"];
     self.beaconRegion.notifyEntryStateOnDisplay = YES;
-    
-    self.beaconPeripheralData = [self.beaconRegion peripheralDataWithMeasuredPower:nil];
+
     self.peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil options:nil];
-    
+
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate = self;
-    
+
     [self.locationManager startMonitoringForRegion:self.beaconRegion];
+    
+    [[KIOShchigelskyAPI sharedInstance] deleteDataFile:kKIOAPICashData];
 }
 
 - (void)didReceiveMemoryWarning
@@ -70,34 +71,18 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
     
-    CLBeacon *beacon = self.beacons[indexPath.row];
-    cell.textLabel.text = [NSString stringWithFormat:@"minor: %@, major: %@", beacon.minor, beacon.major];
-    cell.detailTextLabel.text = [self proximityString:beacon];
-    cell.backgroundColor = [self proximityColor:beacon];
+    if (self.beacons.count > 0) {
+        CLBeacon *beacon = self.beacons[indexPath.row];
+        cell.textLabel.text = [NSString stringWithFormat:@"minor: %@, major: %@", beacon.minor, beacon.major];
+        cell.detailTextLabel.text = [NSString stringWithFormat:@"%.2f", beacon.accuracy];
+        cell.backgroundColor = [self proximityColor:beacon];
+    }
     
     return cell;
 }
 
 
 #pragma mark - Styling
-
-- (NSString *)proximityString:(CLBeacon *)beacon
-{
-    switch (beacon.proximity) {
-        case CLProximityUnknown:
-            return NSLocalizedString(@"PROXIMITY_UNKNOWN", nil);
-            break;
-        case CLProximityImmediate:
-            return NSLocalizedString(@"PROXIMITY_IMMEDIATE", nil);
-            break;
-        case CLProximityNear:
-            return NSLocalizedString(@"PROXIMITY_NEAR", nil);
-            break;
-        case CLProximityFar:
-            return NSLocalizedString(@"PROXIMITY_FAR", nil);
-            break;
-    }
-}
 
 - (UIColor *)proximityColor:(CLBeacon *)beacon
 {
@@ -124,17 +109,19 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
 {
     if (peripheral.state == CBPeripheralManagerStatePoweredOn)
     {
-        self.navigationItem.title = NSLocalizedString(@"BROADCASTING", nil);
-        [self.peripheralManager startAdvertising:[self.beaconRegion peripheralDataWithMeasuredPower:nil]];
+        self.navigationItem.title = @"BLUTOOTH_ON";
+        [self.locationManager startRangingBeaconsInRegion:self.beaconRegion];
     }
     else if (peripheral.state == CBPeripheralManagerStatePoweredOff)
     {
-        self.navigationItem.title = NSLocalizedString(@"BLUTOOTH_OFF", nil);
-        [self.peripheralManager stopAdvertising];
+        self.navigationItem.title = @"BLUTOOTH_OFF";
+        [self.locationManager stopRangingBeaconsInRegion:self.beaconRegion];
+        self.beacons = nil;
+        [self.tableView reloadData];
     }
     else if (peripheral.state == CBPeripheralManagerStateUnsupported)
     {
-        self.navigationItem.title = NSLocalizedString(@"UNSUPPORTED_BL", nil);
+        self.navigationItem.title = @"UNSUPPORTED_BL";
     }
 }
 
@@ -146,7 +133,6 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
     if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
         [self.locationManager startRangingBeaconsInRegion:(CLBeaconRegion*)region];
     }
-//    self.labelNearStatus.text = NSLocalizedString(@"GO_IN_TO_REGION", nil);
 }
 
 - (void)locationManager:(CLLocationManager*)manager didExitRegion:(CLRegion*)region
@@ -154,20 +140,25 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
     if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
         [self.locationManager stopRangingBeaconsInRegion:(CLBeaconRegion*)region];
     }
-//    self.labelNearStatus.text = NSLocalizedString(@"GO_OUT_FROM_REGION", nil);
 }
 
 - (void)locationManager:(CLLocationManager*)manager didRangeBeacons:(NSArray*)beacons inRegion:(CLBeaconRegion*)region
 {
     self.beacons = beacons;
+    if (![[KIOShchigelskyAPI sharedInstance] cashExists:kKIOAPICashData]) {
+        for (CLBeacon *beacon in beacons) {
+            [[KIOShchigelskyAPI sharedInstance] loadBeaconInfo:beacon updateCash:NO mainQueue:^(NSDictionary *dataFromAPI, BOOL isDone) {
+                NSLog(@"hollo");
+            }];
+        }
+    }
     [self.tableView reloadData];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didDetermineState:(CLRegionState)state forRegion:(CLRegion *)region
 {
-    NSLog(@"didDetermineState: %i for region: %@", (int)state, region.identifier);
-    
     if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
+
         CLBeaconRegion *beaconRegion = (CLBeaconRegion *)region;
         if(state == CLRegionStateInside)
             [self.locationManager startRangingBeaconsInRegion:beaconRegion];
@@ -179,7 +170,7 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
 {
     [[[UIAlertView alloc] initWithTitle:@"Location not avalible"
-                                message:@"Pleace check location service! Or coll support..."
+                                message:@"Pleace check location service! Or call support..."
                                delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
 }
 

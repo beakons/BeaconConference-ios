@@ -129,8 +129,8 @@ static NSString *const kKIOAPIHost = @"54.85.60.100";
 - (NSString *)stringURLForBeacon:(CLBeacon *)beacon
 {
     NSString *hostAPI = [NSString stringWithFormat:@"http://%@/beaconsapp", kKIOAPIHost];
-    NSString *stringURL = [NSString stringWithFormat:@"%@/object/%@/%@/%@", hostAPI, beacon.proximityUUID.UUIDString, beacon.minor, beacon.major];
-
+    NSString *stringURL = [NSString stringWithFormat:@"%@/object/%@/%@/%@", hostAPI, [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
+    
     return stringURL;
 }
 
@@ -139,6 +139,11 @@ static NSString *const kKIOAPIHost = @"54.85.60.100";
     if ([[NSFileManager defaultManager] fileExistsAtPath:[self pathDataFile:fileName]]) {
         [[NSFileManager defaultManager] removeItemAtPath:[self pathDataFile:fileName] error:nil];
     }
+}
+
+- (BOOL)cashExists:(NSString *)fileName
+{
+    return [[NSFileManager defaultManager] fileExistsAtPath:[self pathDataFile:fileName]];
 }
 
 - (NSString *)pathDataFile:(NSString *)fileName
