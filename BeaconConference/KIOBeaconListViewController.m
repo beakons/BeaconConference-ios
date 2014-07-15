@@ -13,9 +13,6 @@
 #import "KIOShchigelskyAPI.h"
 
 
-NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
-
-
 @interface KIOBeaconListViewController () <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
 
 @property (nonatomic, strong) CLBeaconRegion *beaconRegion;
@@ -36,9 +33,6 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
     
     NSString *beaconUUID = [[NSArray arrayWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIOAPICashUUID]] firstObject];
     NSLog(@"beaconUUID: %@", beaconUUID);
-    
-    // TODO: use beaconUUID from server
-    // Naw using temp kKIOBeaconTestUUID
     
     NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:beaconUUID];
     self.beaconRegion = [[CLBeaconRegion alloc] initWithProximityUUID:uuid identifier:@"ru.kirillosipov.testBeaconRegion"];
@@ -145,11 +139,9 @@ NSString *const kKIOBeaconTestUUID = @"f7826da6-4fa2-4e98-8024-bc5b71e0893e";
 - (void)locationManager:(CLLocationManager*)manager didRangeBeacons:(NSArray*)beacons inRegion:(CLBeaconRegion*)region
 {
     self.beacons = beacons;
-    if (![[KIOShchigelskyAPI sharedInstance] cashExists:kKIOAPICashData]) {
+    if ([[KIOShchigelskyAPI sharedInstance] cashExists:kKIOAPICashData] == NO) {
         for (CLBeacon *beacon in beacons) {
-            [[KIOShchigelskyAPI sharedInstance] loadBeaconInfo:beacon updateCash:NO mainQueue:^(NSDictionary *dataFromAPI, BOOL isDone) {
-                NSLog(@"hollo");
-            }];
+            [[KIOShchigelskyAPI sharedInstance] loadBeaconInfo:beacon updateCash:NO mainQueue:nil];
         }
     }
     [self.tableView reloadData];

@@ -14,6 +14,10 @@ static NSString *const kKIOSplashSegueError = @"errorSeque";
 #import "KIOShchigelskyAPI.h"
 
 
+@interface KIOSplashViewController () <UIAlertViewDelegate>
+@end
+
+
 @implementation KIOSplashViewController
 
 - (void)viewDidLoad

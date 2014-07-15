@@ -1,6 +1,6 @@
 //
-//  KIOGeonamesAPI.h
-//  Osipov_K_A_LW8
+//  KIOShchigelskyAPI.h
+//  BeaconConference
 //
 //  Created by Kirill Osipov on 07.07.14.
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
