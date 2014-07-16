@@ -13,7 +13,15 @@
 #import "KIOShchigelskyAPI.h"
 
 
+typedef NS_ENUM(NSUInteger, TableViewDataStyle){
+    TableViewDataStyleServer,
+    TableViewDataStyleBeacon
+};
+
 @interface KIOBeaconListViewController () <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
+
+@property (nonatomic, weak) IBOutlet UIBarButtonItem *dataStyleButton;
+@property (nonatomic, assign) TableViewDataStyle tableViewDataStyle;
 
 @property (nonatomic, strong) CLBeaconRegion *beaconRegion;
 @property (strong, nonatomic) NSDictionary *beaconPeripheralData;
@@ -47,12 +55,34 @@
     [self.locationManager startMonitoringForRegion:self.beaconRegion];
     
     [[KIOShchigelskyAPI sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
+    
+    self.tableViewDataStyle = TableViewDataStyleBeacon;
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+
+#pragma mark - Action
+
+- (IBAction)chengeTableViewDataStyle:(UIBarButtonItem *)sender
+{
+    switch (self.tableViewDataStyle) {
+        case TableViewDataStyleServer: {
+            [self.dataStyleButton setImage:[UIImage imageNamed:@"ic_nav_server_str"]];
+            self.tableViewDataStyle = TableViewDataStyleBeacon;
+        }break;
+            
+        case TableViewDataStyleBeacon: {
+            [self.dataStyleButton setImage:[UIImage imageNamed:@"ic_nav_tehno_str"]];
+            self.tableViewDataStyle = TableViewDataStyleServer;
+        }break;
+    }
+    
+    [self.tableView reloadData];
 }
 
 #pragma mark - Table view data source
@@ -64,12 +94,28 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
+    UITableViewCell *cell;
     
     if (self.beacons.count > 0) {
+
         CLBeacon *beacon = self.beacons[indexPath.row];
-        cell.textLabel.text = [NSString stringWithFormat:@"minor: %@, major: %@", beacon.minor, beacon.major];
-        cell.detailTextLabel.text = [NSString stringWithFormat:@"%.2f", beacon.accuracy];
+
+        switch (self.tableViewDataStyle) {
+                
+            case TableViewDataStyleBeacon: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleBeacon" forIndexPath:indexPath];
+                cell.textLabel.text = [NSString stringWithFormat:@"minor: %@, major: %@", beacon.minor, beacon.major];
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"%.2f", beacon.accuracy];
+            }break;
+                
+            case TableViewDataStyleServer: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleServer" forIndexPath:indexPath];
+                NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
+                NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
+                cell.textLabel.text = (NSString *)bdata[beaconID][@"description"] ? bdata[beaconID][@"description"] : nil;
+                cell.detailTextLabel.text = [self proximityData:beacon];
+            }break;
+        }
         cell.backgroundColor = [self proximityColor:beacon];
     }
     
@@ -97,6 +143,26 @@
     }
 }
 
+- (NSString *)proximityData:(CLBeacon *)beacon
+{
+    NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
+    NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
+
+    switch (beacon.proximity) {
+        case CLProximityUnknown:
+            return nil;
+            break;
+        case CLProximityImmediate:
+            return bdata[beaconID][@"description_immediate"];
+            break;
+        case CLProximityNear:
+            return bdata[beaconID][@"description_near"];
+            break;
+        case CLProximityFar:
+            return bdata[beaconID][@"description_far"];
+            break;
+    }
+}
 
 #pragma mark - CBPeripheralManagerDelegate
 

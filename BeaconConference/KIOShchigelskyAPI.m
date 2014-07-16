@@ -8,7 +8,9 @@
 
 NSString *const kKIO_API_CASH_UUID_FILE = @"uuid_list.plist";
 NSString *const kKIO_API_CASH_DATA_FILE = @"uuid_data.plist";
+
 NSString *const kKIO_API_CONST_UUIDS = @"uuids";
+
 
 static NSString *const kKIO_API_HOST = @"54.85.60.100";
 
@@ -32,6 +34,9 @@ static NSString *const kKIO_API_HOST = @"54.85.60.100";
     return sharedInstance;
 }
 
+
+#pragma mark -
+
 - (void)loadUUIDReloadCash:(BOOL)update mainQueue:(void(^)(BOOL success))block
 {
     NSString *cashFilePath = [self pathDataFile:kKIO_API_CASH_UUID_FILE];
@@ -43,10 +48,12 @@ static NSString *const kKIO_API_HOST = @"54.85.60.100";
         
     } else {
 
-        NSString *stringURL = [NSString stringWithFormat:@"http://%@/beaconsapp/uuids", kKIO_API_HOST];
-        [self loadDataFrom:[NSURL URLWithString:stringURL] mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@/beaconsapp/uuids", kKIO_API_HOST]];
+        [self loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
             
-            [dataFromAPI writeToFile:cashFilePath atomically:YES];
+            if (success) {
+                [dataFromAPI writeToFile:cashFilePath atomically:YES];
+            }
             block(success);
         }];
     }
@@ -66,10 +73,20 @@ static NSString *const kKIO_API_HOST = @"54.85.60.100";
         NSURL *url = [self URLBeacon:beacon];
         [self loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
             
-            // TODO: data cash file
-            [dataFromAPI writeToFile:cashFilePath atomically:YES];
-            
-            block(dataFromAPI, success);
+            if (success) {
+                NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
+                
+                if ([[NSFileManager defaultManager] fileExistsAtPath:cashFilePath]) {
+                    NSMutableDictionary *tempDict = [NSDictionary dictionaryWithContentsOfFile:cashFilePath];
+                    [tempDict setObject:dataFromAPI forKey:beaconID];
+                    [tempDict writeToFile:cashFilePath atomically:YES];
+                } else {
+                    [@{beaconID : dataFromAPI} writeToFile:cashFilePath atomically:YES];
+                }
+            }
+            if (block) {
+                block(dataFromAPI, success);
+            }
         }];
     }
 }
@@ -141,5 +158,6 @@ typedef void (^RequestAPIData)(NSDictionary *dataFromAPI, BOOL success);
     
     return [NSURL URLWithString:stringURL];
 }
+
 
 @end
