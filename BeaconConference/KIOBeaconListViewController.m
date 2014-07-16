@@ -31,7 +31,8 @@
 {
     [super viewDidLoad];
     
-    NSString *beaconUUID = [[NSArray arrayWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIOAPICashUUID]] firstObject];
+    id uuids = [NSDictionary dictionaryWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIO_API_CASH_UUID_FILE]];
+    NSString *beaconUUID = [[uuids valueForKey:kKIO_API_CONST_UUIDS] firstObject];
     NSLog(@"beaconUUID: %@", beaconUUID);
     
     NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:beaconUUID];
@@ -45,7 +46,7 @@
 
     [self.locationManager startMonitoringForRegion:self.beaconRegion];
     
-    [[KIOShchigelskyAPI sharedInstance] deleteDataFile:kKIOAPICashData];
+    [[KIOShchigelskyAPI sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
 }
 
 - (void)didReceiveMemoryWarning
@@ -139,9 +140,9 @@
 - (void)locationManager:(CLLocationManager*)manager didRangeBeacons:(NSArray*)beacons inRegion:(CLBeaconRegion*)region
 {
     self.beacons = beacons;
-    if ([[KIOShchigelskyAPI sharedInstance] cashExists:kKIOAPICashData] == NO) {
+    if ([[KIOShchigelskyAPI sharedInstance] cashExists:kKIO_API_CASH_DATA_FILE] == NO) {
         for (CLBeacon *beacon in beacons) {
-            [[KIOShchigelskyAPI sharedInstance] loadBeaconInfo:beacon updateCash:NO mainQueue:nil];
+            [[KIOShchigelskyAPI sharedInstance] loadBeacon:beacon reloadCash:YES mainQueue:nil];
         }
     }
     [self.tableView reloadData];

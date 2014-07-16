@@ -6,11 +6,11 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
-NSString *const kKIOAPICashUUID = @"uuid_list.plist";
-NSString *const kKIOAPICashData = @"uuid_data.plist";
+NSString *const kKIO_API_CASH_UUID_FILE = @"uuid_list.plist";
+NSString *const kKIO_API_CASH_DATA_FILE = @"uuid_data.plist";
+NSString *const kKIO_API_CONST_UUIDS = @"uuids";
 
-static NSString *const kKIOAPIHost = @"54.85.60.100";
-
+static NSString *const kKIO_API_HOST = @"54.85.60.100";
 
 @import CoreLocation;
 
@@ -32,106 +32,46 @@ static NSString *const kKIOAPIHost = @"54.85.60.100";
     return sharedInstance;
 }
 
-- (void)loadBeaconListWithUpdateCash:(BOOL)isUpdate mainQueue:(void(^)(BOOL isDone))block
+- (void)loadUUIDReloadCash:(BOOL)update mainQueue:(void(^)(BOOL success))block
 {
-    NSString *cashFilePath = [self pathDataFile:kKIOAPICashUUID];
+    NSString *cashFilePath = [self pathDataFile:kKIO_API_CASH_UUID_FILE];
     
-    // TODO: re_fuck
-    // code dublicate hear
-    
-    if (isUpdate == NO && [[NSFileManager defaultManager] fileExistsAtPath:cashFilePath]) {
+    if (update == NO && [[NSFileManager defaultManager] fileExistsAtPath:cashFilePath]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             block(YES);
         });
         
     } else {
-        
-        Reachability *geonamesReachability = [Reachability reachabilityWithHostName:kKIOAPIHost];
-        NetworkStatus geonamesURLStatus = geonamesReachability.currentReachabilityStatus;
-        
-        if (geonamesURLStatus == NotReachable) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                block(NO);
-            });
-        } else {
+
+        NSString *stringURL = [NSString stringWithFormat:@"http://%@/beaconsapp/uuids", kKIO_API_HOST];
+        [self loadDataFrom:[NSURL URLWithString:stringURL] mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
             
-            NSString *stringURL = [NSString stringWithFormat:@"http://%@/beaconsapp/uuids", kKIOAPIHost];
-            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
-            NSURLSessionDataTask *downloadTask = [[NSURLSession sharedSession] dataTaskWithURL:[NSURL URLWithString:stringURL]
-                                                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                                                                 
-                                                                                 if (data && !error) {
-                                                                                     
-                                                                                     NSError *jsonError;
-                                                                                     NSArray *jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonError];
-                                                                                     if (!jsonError) {
-                                                                                         
-                                                                                         dispatch_async(dispatch_get_main_queue(), ^{
-                                                                                             [jsonData writeToFile:cashFilePath atomically:YES];
-                                                                                             block(YES);
-                                                                                             [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-                                                                                         });
-                                                                                     } else NSLog(@"jsonError %@", [jsonError localizedDescription]);
-                                                                                 } else NSLog(@"error %@", [error localizedDescription]);
-                                                                             }];
-            [downloadTask resume];
-        }
+            [dataFromAPI writeToFile:cashFilePath atomically:YES];
+            block(success);
+        }];
     }
 }
 
-- (void)loadBeaconInfo:(CLBeacon *)beacon updateCash:(BOOL)isUpdate mainQueue:(void(^)(NSDictionary *dataFromAPI, BOOL isDone))block;
+- (void)loadBeacon:(CLBeacon *)beacon reloadCash:(BOOL)update mainQueue:(void(^)(NSDictionary *dataFromAPI, BOOL success))block
 {
-    NSString *cashFilePath = [self pathDataFile:kKIOAPICashData];
+    NSString *cashFilePath = [self pathDataFile:kKIO_API_CASH_DATA_FILE];
     
-    if (isUpdate == NO && [[NSFileManager defaultManager] fileExistsAtPath:cashFilePath]) {
+    if (update == NO && [[NSFileManager defaultManager] fileExistsAtPath:cashFilePath]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            block([NSArray arrayWithContentsOfFile:cashFilePath], YES);
+            block([NSDictionary dictionaryWithContentsOfFile:cashFilePath], YES);
         });
         
     } else {
         
-        // TODO: locale
-        // NSString *localeIdentifier = [[[NSLocale currentLocale] localeIdentifier] substringToIndex:2];
-        
-        Reachability *geonamesReachability = [Reachability reachabilityWithHostName:kKIOAPIHost];
-        NetworkStatus geonamesURLStatus = geonamesReachability.currentReachabilityStatus;
-        
-        if (geonamesURLStatus == NotReachable) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                block(nil, NO);
-            });
-        } else {
+        NSURL *url = [self URLBeacon:beacon];
+        [self loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
             
-            NSString *stringURL = [self stringURLForBeacon:beacon];
-            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
-            NSURLSessionDataTask *downloadTask = [[NSURLSession sharedSession] dataTaskWithURL:[NSURL URLWithString:stringURL]
-                                                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                                                                 
-                                                                                 if (data && !error) {
-                                                                                     
-                                                                                     NSError *jsonError;
-                                                                                     NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&jsonError];
-                                                                                     if (!jsonError) {
-                                                                                         
-                                                                                         dispatch_async(dispatch_get_main_queue(), ^{
-                                                                                             [jsonData writeToFile:cashFilePath atomically:YES];
-                                                                                             block(jsonData, YES);
-                                                                                             [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-                                                                                         });
-                                                                                     } else NSLog(@"jsonError %@", [jsonError localizedDescription]);
-                                                                                 } else NSLog(@"error %@", [error localizedDescription]);
-                                                                             }];
-            [downloadTask resume];
-        }
+            // TODO: data cash file
+            [dataFromAPI writeToFile:cashFilePath atomically:YES];
+            
+            block(dataFromAPI, success);
+        }];
     }
-}
-
-- (NSString *)stringURLForBeacon:(CLBeacon *)beacon
-{
-    NSString *hostAPI = [NSString stringWithFormat:@"http://%@/beaconsapp", kKIOAPIHost];
-    NSString *stringURL = [NSString stringWithFormat:@"%@/object/%@/%@/%@", hostAPI, [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
-    
-    return stringURL;
 }
 
 - (void)deleteDataFile:(NSString *)fileName
@@ -151,6 +91,55 @@ static NSString *const kKIOAPIHost = @"54.85.60.100";
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsPath = [[paths firstObject] stringByAppendingPathComponent:fileName];
     return documentsPath;
+}
+
+
+#pragma mark - Privat RequestAPIData
+
+typedef void (^RequestAPIData)(NSDictionary *dataFromAPI, BOOL success);
+
+- (void)loadDataFrom:(NSURL *)dataURL mainQueue:(RequestAPIData)block
+{
+    // TODO: locale
+    // NSString *localeIdentifier = [[[NSLocale currentLocale] localeIdentifier] substringToIndex:2];
+    
+    Reachability *reachabilityHost = [Reachability reachabilityWithHostName:[dataURL host]];
+    NetworkStatus reachabilityHostStatus = reachabilityHost.currentReachabilityStatus;
+    
+    if (reachabilityHostStatus == NotReachable) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            block(nil, NO);
+        });
+    } else {
+        
+        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+        [[[NSURLSession sharedSession] dataTaskWithURL:dataURL
+                                     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                         
+                                         if (data && !error) {
+                                             NSError *jsonError;
+                                             NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:data
+                                                                                                      options:NSJSONReadingAllowFragments
+                                                                                                        error:&jsonError];
+                                             if (!jsonError) {
+                                                 
+                                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                                     block(jsonData, YES);
+                                                     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+                                                 });
+                                             } else NSLog(@"SerializationJSONError: %@", [jsonError localizedDescription]);
+                                         } else NSLog(@"URLSessionError: %@", [error localizedDescription]);
+                                         
+                                     }] resume];
+    }
+}
+
+- (NSURL *)URLBeacon:(CLBeacon *)beacon
+{
+    NSString *hostAPI = [NSString stringWithFormat:@"http://%@/beaconsapp", kKIO_API_HOST];
+    NSString *stringURL = [NSString stringWithFormat:@"%@/object/%@/%@/%@", hostAPI, [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
+    
+    return [NSURL URLWithString:stringURL];
 }
 
 @end

@@ -26,41 +26,11 @@
                     </view>
                     <connections>
                         <segue destination="shu-6M-XWR" kind="modal" identifier="successSegue" id="Mcx-EP-3LB"/>
-                        <segue destination="F5a-de-LMH" kind="push" identifier="errorSeque" id="Oqf-V7-wts"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-20" y="-460"/>
-        </scene>
-        <!--View Controller-->
-        <scene sceneID="zuE-Ya-pIz">
-            <objects>
-                <viewController id="F5a-de-LMH" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="7F2-gF-kf3"/>
-                        <viewControllerLayoutGuide type="bottom" id="gdb-2w-cgt"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="pkR-lo-JQc">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="k2x-pJ-jMX">
-                                <rect key="frame" x="32" y="156" width="256" height="256"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" image="ic_reload"/>
-                            </button>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="miN-zN-CUO"/>
-                    <connections>
-                        <segue destination="shu-6M-XWR" kind="push" identifier="reloadSegue" id="ixC-Dz-sBe"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="A87-IQ-Ov5" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="516" y="697"/>
         </scene>
         <!--Beacon List View Controller-->
         <scene sceneID="olu-eN-yX3">
@@ -127,15 +97,9 @@
             <point key="canvasLocation" x="1064" y="-460"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="ic_reload" width="256" height="256"/>
-    </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
         <simulatedOrientationMetrics key="orientation"/>
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
-    <inferredMetricsTieBreakers>
-        <segue reference="Mcx-EP-3LB"/>
-    </inferredMetricsTieBreakers>
 </document>
