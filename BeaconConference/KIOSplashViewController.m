@@ -10,8 +10,8 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 
 
 #import "KIOSplashViewController.h"
-#import "KIOShchigelskyAPI.h"
-
+#import "KIOAPIDataStore.h"
+#import "KIOAPIConnection.h"
 
 @interface KIOSplashViewController () <UIAlertViewDelegate>
 @end
@@ -37,7 +37,7 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 
 - (void)loadData
 {
-    [[KIOShchigelskyAPI sharedInstance] loadUUIDReloadCash:YES mainQueue:^(BOOL success) {
+    [[KIOAPIDataStore sharedInstance] loadUUIDReloadCash:NO mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
         
         if (success == YES) {
             [NSThread sleepForTimeInterval:1.0];
@@ -45,7 +45,7 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
             
         } else {
             [[[UIAlertView alloc] initWithTitle:@"Attantion"
-                                        message:@"No conection to api.shchigelsky or internet is swith off"
+                                        message:dataFromAPI[kKIO_API_ERROR_KEY]
                                        delegate:self
                               cancelButtonTitle:@"reload"
                               otherButtonTitles:@"exit", nil] show];
@@ -61,7 +61,7 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
         [self loadData];
     } else {
         [[UIApplication sharedApplication] performSelector:@selector(suspend)];
-        [NSThread sleepForTimeInterval:2.0];
+        [NSThread sleepForTimeInterval:1.0];
         exit(0);
     }
 }

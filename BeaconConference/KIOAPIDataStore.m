@@ -6,21 +6,18 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
+#define kKIO_SHOULD_PRINT_FLAG 1
+
 NSString *const kKIO_API_CASH_UUID_FILE = @"uuid_list.plist";
 NSString *const kKIO_API_CASH_DATA_FILE = @"uuid_data.plist";
 
-NSString *const kKIO_API_CONST_UUIDS = @"uuids";
-
-
-static NSString *const kKIO_API_HOST = @"54.85.60.100";
+NSString *const kKIO_API_UUIDS_KEY = @"uuids";
 
 @import CoreLocation;
-
-#import "KIOShchigelskyAPI.h"
-#import "Reachability.h"
+#import "KIOAPIDataStore.h"
 
 
-@implementation KIOShchigelskyAPI
+@implementation KIOAPIDataStore
 
 + (instancetype)sharedInstance
 {
@@ -37,29 +34,44 @@ static NSString *const kKIO_API_HOST = @"54.85.60.100";
 
 #pragma mark -
 
-- (void)loadUUIDReloadCash:(BOOL)update mainQueue:(void(^)(BOOL success))block
+/*!
+ * @discussion load Beacon UUIDs
+ *
+ * @param reloadCash BOOL
+ *
+ */
+- (void)loadUUIDReloadCash:(BOOL)update mainQueue:(RequestAPIData)block
 {
     NSString *cashFilePath = [self pathDataFile:kKIO_API_CASH_UUID_FILE];
     
     if (update == NO && [[NSFileManager defaultManager] fileExistsAtPath:cashFilePath]) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            block(YES);
+            block([NSDictionary dictionaryWithContentsOfFile:cashFilePath], YES);
         });
         
     } else {
 
         NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"http://%@/beaconsapp/uuids", kKIO_API_HOST]];
-        [self loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
+        [KIOAPIConnection loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
             
             if (success) {
                 [dataFromAPI writeToFile:cashFilePath atomically:YES];
             }
-            block(success);
+            if (block) {
+                block(dataFromAPI, success);
+            }
         }];
     }
 }
 
-- (void)loadBeacon:(CLBeacon *)beacon reloadCash:(BOOL)update mainQueue:(void(^)(NSDictionary *dataFromAPI, BOOL success))block
+/*!
+ * @discussion load Beacon 1 by 1
+ *
+ * @param beacon CLBeacon
+ * @param reloadCash BOOL
+ *
+ */
+- (void)loadBeacon:(CLBeacon *)beacon reloadCash:(BOOL)update mainQueue:(RequestAPIData)block
 {
     NSString *cashFilePath = [self pathDataFile:kKIO_API_CASH_DATA_FILE];
     
@@ -71,7 +83,7 @@ static NSString *const kKIO_API_HOST = @"54.85.60.100";
     } else {
         
         NSURL *url = [self URLBeacon:beacon];
-        [self loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
+        [KIOAPIConnection loadDataFrom:url mainQueue:^(NSDictionary *dataFromAPI, BOOL success) {
             
             if (success) {
                 NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
@@ -111,51 +123,15 @@ static NSString *const kKIO_API_HOST = @"54.85.60.100";
 }
 
 
-#pragma mark - Privat RequestAPIData
-
-typedef void (^RequestAPIData)(NSDictionary *dataFromAPI, BOOL success);
-
-- (void)loadDataFrom:(NSURL *)dataURL mainQueue:(RequestAPIData)block
-{
-    // TODO: locale
-    // NSString *localeIdentifier = [[[NSLocale currentLocale] localeIdentifier] substringToIndex:2];
-    
-    Reachability *reachabilityHost = [Reachability reachabilityWithHostName:[dataURL host]];
-    NetworkStatus reachabilityHostStatus = reachabilityHost.currentReachabilityStatus;
-    
-    if (reachabilityHostStatus == NotReachable) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            block(nil, NO);
-        });
-    } else {
-        
-        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
-        [[[NSURLSession sharedSession] dataTaskWithURL:dataURL
-                                     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                         
-                                         if (data && !error) {
-                                             NSError *jsonError;
-                                             NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:data
-                                                                                                      options:NSJSONReadingAllowFragments
-                                                                                                        error:&jsonError];
-                                             if (!jsonError) {
-                                                 
-                                                 dispatch_async(dispatch_get_main_queue(), ^{
-                                                     block(jsonData, YES);
-                                                     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-                                                 });
-                                             } else NSLog(@"SerializationJSONError: %@", [jsonError localizedDescription]);
-                                         } else NSLog(@"URLSessionError: %@", [error localizedDescription]);
-                                         
-                                     }] resume];
-    }
-}
+#pragma mark - Privat
 
 - (NSURL *)URLBeacon:(CLBeacon *)beacon
 {
     NSString *hostAPI = [NSString stringWithFormat:@"http://%@/beaconsapp", kKIO_API_HOST];
     NSString *stringURL = [NSString stringWithFormat:@"%@/object/%@/%@/%@", hostAPI, [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
-    
+#if kKIO_SHOULD_PRINT_FLAG
+    NSLog(@"%@", stringURL);
+#endif
     return [NSURL URLWithString:stringURL];
 }
 

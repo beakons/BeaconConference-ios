@@ -10,7 +10,8 @@
 @import CoreBluetooth;
 
 #import "KIOBeaconListViewController.h"
-#import "KIOShchigelskyAPI.h"
+#import "KIOAPIDataStore.h"
+#import "KIOBeacon.h"
 
 
 typedef NS_ENUM(NSUInteger, TableViewDataStyle){
@@ -39,24 +40,26 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 {
     [super viewDidLoad];
     
-    id uuids = [NSDictionary dictionaryWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIO_API_CASH_UUID_FILE]];
-    NSString *beaconUUID = [[uuids valueForKey:kKIO_API_CONST_UUIDS] firstObject];
+    id uuids = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore sharedInstance] pathDataFile:kKIO_API_CASH_UUID_FILE]];
+    NSString *beaconUUID = [[uuids valueForKey:kKIO_API_UUIDS_KEY] firstObject];
     NSLog(@"beaconUUID: %@", beaconUUID);
     
     NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:beaconUUID];
     self.beaconRegion = [[CLBeaconRegion alloc] initWithProximityUUID:uuid identifier:@"ru.kirillosipov.testBeaconRegion"];
     self.beaconRegion.notifyEntryStateOnDisplay = YES;
+    self.beaconRegion.notifyOnEntry = YES;
 
-    self.peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil options:nil];
+    self.peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil];
 
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate = self;
 
-    [self.locationManager startMonitoringForRegion:self.beaconRegion];
-    
-    [[KIOShchigelskyAPI sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
+    [[KIOAPIDataStore sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
     
     self.tableViewDataStyle = TableViewDataStyleBeacon;
+    
+    self.refreshControl = [UIRefreshControl new];
+    [self.refreshControl addTarget:self action:@selector(reload) forControlEvents:UIControlEventValueChanged];
 }
 
 - (void)didReceiveMemoryWarning
@@ -67,6 +70,15 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 
 
 #pragma mark - Action
+
+- (void)reload
+{
+    self.beacons = nil;
+    [[KIOAPIDataStore sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
+    
+    [self.tableView reloadData];
+    [self.refreshControl endRefreshing];
+}
 
 - (IBAction)chengeTableViewDataStyle:(UIBarButtonItem *)sender
 {
@@ -110,7 +122,7 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
                 
             case TableViewDataStyleServer: {
                 cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleServer" forIndexPath:indexPath];
-                NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
+                NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
                 NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
                 cell.textLabel.text = (NSString *)bdata[beaconID][@"description"] ? bdata[beaconID][@"description"] : nil;
                 cell.detailTextLabel.text = [self proximityData:beacon];
@@ -145,7 +157,7 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 
 - (NSString *)proximityData:(CLBeacon *)beacon
 {
-    NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOShchigelskyAPI sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
+    NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
     NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
 
     switch (beacon.proximity) {
@@ -171,11 +183,14 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
     if (peripheral.state == CBPeripheralManagerStatePoweredOn)
     {
         self.navigationItem.title = @"BLUTOOTH_ON";
+        [self.locationManager startMonitoringForRegion:self.beaconRegion];
         [self.locationManager startRangingBeaconsInRegion:self.beaconRegion];
+        [self.tableView reloadData];
     }
     else if (peripheral.state == CBPeripheralManagerStatePoweredOff)
     {
         self.navigationItem.title = @"BLUTOOTH_OFF";
+        [self.locationManager stopMonitoringForRegion:self.beaconRegion];
         [self.locationManager stopRangingBeaconsInRegion:self.beaconRegion];
         self.beacons = nil;
         [self.tableView reloadData];
@@ -183,6 +198,7 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
     else if (peripheral.state == CBPeripheralManagerStateUnsupported)
     {
         self.navigationItem.title = @"UNSUPPORTED_BL";
+        [self.locationManager stopRangingBeaconsInRegion:self.beaconRegion];
     }
 }
 
@@ -199,30 +215,40 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 - (void)locationManager:(CLLocationManager*)manager didExitRegion:(CLRegion*)region
 {
     if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
-        [self.locationManager stopRangingBeaconsInRegion:(CLBeaconRegion*)region];
+        self.beacons = nil;
+        [self.locationManager stopMonitoringForRegion:self.beaconRegion];
+//        [self.locationManager stopRangingBeaconsInRegion:(CLBeaconRegion*)region];
     }
 }
 
 - (void)locationManager:(CLLocationManager*)manager didRangeBeacons:(NSArray*)beacons inRegion:(CLBeaconRegion*)region
 {
     self.beacons = beacons;
-    if ([[KIOShchigelskyAPI sharedInstance] cashExists:kKIO_API_CASH_DATA_FILE] == NO) {
+    if ([[KIOAPIDataStore sharedInstance] cashExists:kKIO_API_CASH_DATA_FILE] == NO) {
         for (CLBeacon *beacon in beacons) {
-            [[KIOShchigelskyAPI sharedInstance] loadBeacon:beacon reloadCash:YES mainQueue:nil];
+            [[KIOAPIDataStore sharedInstance] loadBeacon:beacon reloadCash:NO mainQueue:nil];
         }
+    } else {
+        [self.tableView reloadData];
     }
-    [self.tableView reloadData];
 }
 
 - (void)locationManager:(CLLocationManager *)manager didDetermineState:(CLRegionState)state forRegion:(CLRegion *)region
 {
     if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
 
+//        UILocalNotification *localNotification = [[UILocalNotification alloc] init];
+
         CLBeaconRegion *beaconRegion = (CLBeaconRegion *)region;
-        if(state == CLRegionStateInside)
+        if (state == CLRegionStateInside) {
+//            localNotification.alertBody = [NSString stringWithFormat:@"You are inside region %@", region.identifier];
+//            localNotification.soundName = UILocalNotificationDefaultSoundName;
+//            [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
+
             [self.locationManager startRangingBeaconsInRegion:beaconRegion];
-        else
+        } else {
             [self.locationManager stopRangingBeaconsInRegion:beaconRegion];
+        }
     }
 }
 

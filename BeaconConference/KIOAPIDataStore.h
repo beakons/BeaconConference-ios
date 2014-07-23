@@ -7,17 +7,19 @@
 //
 
 @class CLBeacon;
+#import "KIOAPIConnection.h"
 
 extern NSString *const kKIO_API_CASH_UUID_FILE;
 extern NSString *const kKIO_API_CASH_DATA_FILE;
-extern NSString *const kKIO_API_CONST_UUIDS;
 
-@interface KIOShchigelskyAPI : NSObject
+extern NSString *const kKIO_API_UUIDS_KEY;
+
+@interface KIOAPIDataStore : NSObject
 
 + (instancetype)sharedInstance;
 
-- (void)loadBeacon:(CLBeacon *)beacon reloadCash:(BOOL)update mainQueue:(void(^)(NSDictionary *dataFromAPI, BOOL success))block;
-- (void)loadUUIDReloadCash:(BOOL)update mainQueue:(void(^)(BOOL success))block;
+- (void)loadBeacon:(CLBeacon *)beacon reloadCash:(BOOL)update mainQueue:(RequestAPIData)block;
+- (void)loadUUIDReloadCash:(BOOL)update mainQueue:(RequestAPIData)block;
 
 - (BOOL)cashExists:(NSString *)fileName;
 - (NSString *)pathDataFile:(NSString *)fileName;
