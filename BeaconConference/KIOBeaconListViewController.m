@@ -7,27 +7,20 @@
 //
 
 @import CoreLocation;
-@import CoreBluetooth;
 
 #import "KIOBeaconListViewController.h"
 #import "KIOAPIDataStore.h"
-#import "KIOBeacon.h"
-
+#import "KIOServiceController.h"
 
 typedef NS_ENUM(NSUInteger, TableViewDataStyle){
     TableViewDataStyleServer,
     TableViewDataStyleBeacon
 };
 
-@interface KIOBeaconListViewController () <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
+@interface KIOBeaconListViewController ()
 
 @property (nonatomic, weak) IBOutlet UIBarButtonItem *dataStyleButton;
 @property (nonatomic, assign) TableViewDataStyle tableViewDataStyle;
-
-@property (nonatomic, strong) CLBeaconRegion *beaconRegion;
-@property (strong, nonatomic) NSDictionary *beaconPeripheralData;
-@property (nonatomic, strong) CLLocationManager *locationManager;
-@property (nonatomic, strong) CBPeripheralManager *peripheralManager;
 
 @property (nonatomic, strong) NSArray *beacons;
 
@@ -45,27 +38,79 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
     NSLog(@"beaconUUID: %@", beaconUUID);
     
     NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:beaconUUID];
-    self.beaconRegion = [[CLBeaconRegion alloc] initWithProximityUUID:uuid identifier:@"ru.kirillosipov.testBeaconRegion"];
-    self.beaconRegion.notifyEntryStateOnDisplay = YES;
-    self.beaconRegion.notifyOnEntry = YES;
-
-    self.peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil];
-
-    self.locationManager = [[CLLocationManager alloc] init];
-    self.locationManager.delegate = self;
-
+    [[KIOServiceController sharedService] startMonitoringBeaconsWithUUID:uuid];
+    
     [[KIOAPIDataStore sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
     
     self.tableViewDataStyle = TableViewDataStyleBeacon;
     
     self.refreshControl = [UIRefreshControl new];
     [self.refreshControl addTarget:self action:@selector(reload) forControlEvents:UIControlEventValueChanged];
+    
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceBluetoothONNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceBluetoothOFFNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceExitBeaconRegionNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceEnterBeaconRegionNotification object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(errorNotification:) name:kKIOServiceLocationErrorNotification object:nil];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(beaconsCome:) name:kKIOServiceBeaconsInRegionNotification object:nil];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+
+#pragma mark - NSNotification
+
+- (void)blutoothState:(NSNotification *)notification
+{
+    NSString *state = notification.name;
+    if ([state isEqualToString:kKIOServiceBluetoothONNotification]) {
+        self.navigationItem.title = @"BLUTOOTH_ON";
+        [self.tableView reloadData];
+    }
+    else if ([state isEqualToString:kKIOServiceBluetoothOFFNotification]) {
+        self.beacons = nil;
+        self.navigationItem.title = @"BLUTOOTH_OFF";
+        [self.tableView reloadData];
+    }
+    else if ([state isEqualToString:kKIOServiceExitBeaconRegionNotification]) {
+        self.beacons = nil;
+        [self.tableView reloadData];
+    }
+    else if ([state isEqualToString:kKIOServiceEnterBeaconRegionNotification]) {
+        NSLog(@"EnterBeaconRegion");
+        [self.tableView reloadData];
+    }
+}
+
+- (void)beaconsCome:(NSNotification *)notification
+{
+    self.beacons = (NSArray *)notification.object;
+    if ([[KIOAPIDataStore sharedInstance] cashExists:kKIO_API_CASH_DATA_FILE] == NO) {
+        for (CLBeacon *beacon in self.beacons) {
+            [[KIOAPIDataStore sharedInstance] loadBeacon:beacon reloadCash:NO mainQueue:nil];
+        }
+    }
+
+    [self.tableView reloadData];
+}
+
+- (void)errorNotification:(NSNotification *)notification
+{
+    [[[UIAlertView alloc] initWithTitle:@"Location not avalible"
+                                message:@"Pleace check location service! Or call support..."
+                               delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
 }
 
 
@@ -174,89 +219,6 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
             return bdata[beaconID][@"description_far"];
             break;
     }
-}
-
-#pragma mark - CBPeripheralManagerDelegate
-
-- (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral
-{
-    if (peripheral.state == CBPeripheralManagerStatePoweredOn)
-    {
-        self.navigationItem.title = @"BLUTOOTH_ON";
-        [self.locationManager startMonitoringForRegion:self.beaconRegion];
-        [self.locationManager startRangingBeaconsInRegion:self.beaconRegion];
-        [self.tableView reloadData];
-    }
-    else if (peripheral.state == CBPeripheralManagerStatePoweredOff)
-    {
-        self.navigationItem.title = @"BLUTOOTH_OFF";
-        [self.locationManager stopMonitoringForRegion:self.beaconRegion];
-        [self.locationManager stopRangingBeaconsInRegion:self.beaconRegion];
-        self.beacons = nil;
-        [self.tableView reloadData];
-    }
-    else if (peripheral.state == CBPeripheralManagerStateUnsupported)
-    {
-        self.navigationItem.title = @"UNSUPPORTED_BL";
-        [self.locationManager stopRangingBeaconsInRegion:self.beaconRegion];
-    }
-}
-
-
-#pragma mark - CLLocationManagerDelegate
-
-- (void)locationManager:(CLLocationManager*)manager didEnterRegion:(CLRegion*)region
-{
-    if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
-        [self.locationManager startRangingBeaconsInRegion:(CLBeaconRegion*)region];
-    }
-}
-
-- (void)locationManager:(CLLocationManager*)manager didExitRegion:(CLRegion*)region
-{
-    if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
-        self.beacons = nil;
-        [self.locationManager stopMonitoringForRegion:self.beaconRegion];
-//        [self.locationManager stopRangingBeaconsInRegion:(CLBeaconRegion*)region];
-    }
-}
-
-- (void)locationManager:(CLLocationManager*)manager didRangeBeacons:(NSArray*)beacons inRegion:(CLBeaconRegion*)region
-{
-    self.beacons = beacons;
-    if ([[KIOAPIDataStore sharedInstance] cashExists:kKIO_API_CASH_DATA_FILE] == NO) {
-        for (CLBeacon *beacon in beacons) {
-            [[KIOAPIDataStore sharedInstance] loadBeacon:beacon reloadCash:NO mainQueue:nil];
-        }
-    } else {
-        [self.tableView reloadData];
-    }
-}
-
-- (void)locationManager:(CLLocationManager *)manager didDetermineState:(CLRegionState)state forRegion:(CLRegion *)region
-{
-    if([region isKindOfClass:[CLBeaconRegion class]] && [region.identifier isEqualToString:self.beaconRegion.identifier]) {
-
-//        UILocalNotification *localNotification = [[UILocalNotification alloc] init];
-
-        CLBeaconRegion *beaconRegion = (CLBeaconRegion *)region;
-        if (state == CLRegionStateInside) {
-//            localNotification.alertBody = [NSString stringWithFormat:@"You are inside region %@", region.identifier];
-//            localNotification.soundName = UILocalNotificationDefaultSoundName;
-//            [[UIApplication sharedApplication] presentLocalNotificationNow:localNotification];
-
-            [self.locationManager startRangingBeaconsInRegion:beaconRegion];
-        } else {
-            [self.locationManager stopRangingBeaconsInRegion:beaconRegion];
-        }
-    }
-}
-
-- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
-{
-    [[[UIAlertView alloc] initWithTitle:@"Location not avalible"
-                                message:@"Pleace check location service! Or call support..."
-                               delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
 }
 
 

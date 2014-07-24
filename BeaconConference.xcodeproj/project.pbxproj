@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FA79371D1976E84D00D5C802 /* KIORoomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FA79371C1976E84D00D5C802 /* KIORoomViewController.m */; };
+		FA93001C1981427D00142237 /* KIOServiceController.m in Sources */ = {isa = PBXBuildFile; fileRef = FA93001B1981427D00142237 /* KIOServiceController.m */; };
 		FAB5D79B197519AC004F77ED /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB5D79A197519AC004F77ED /* Foundation.framework */; };
 		FAB5D79D197519AD004F77ED /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB5D79C197519AD004F77ED /* CoreGraphics.framework */; };
 		FAB5D79F197519AD004F77ED /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB5D79E197519AD004F77ED /* UIKit.framework */; };
@@ -44,6 +45,8 @@
 		FA79371C1976E84D00D5C802 /* KIORoomViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIORoomViewController.m; sourceTree = "<group>"; };
 		FA9081A91975647A00B0710E /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		FA9081AA1975647A00B0710E /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		FA93001A1981427D00142237 /* KIOServiceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOServiceController.h; sourceTree = "<group>"; };
+		FA93001B1981427D00142237 /* KIOServiceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOServiceController.m; sourceTree = "<group>"; };
 		FAB5D797197519AC004F77ED /* BeaconConference.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeaconConference.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAB5D79A197519AC004F77ED /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		FAB5D79C197519AD004F77ED /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -99,6 +102,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FA93001D1981428900142237 /* Service Controller */ = {
+			isa = PBXGroup;
+			children = (
+				FA93001A1981427D00142237 /* KIOServiceController.h */,
+				FA93001B1981427D00142237 /* KIOServiceController.m */,
+			);
+			name = "Service Controller";
+			sourceTree = "<group>";
+		};
 		FAB5D78E197519AC004F77ED = {
 			isa = PBXGroup;
 			children = (
@@ -137,7 +149,8 @@
 				FAB5D7AC197519AD004F77ED /* Main.storyboard */,
 				FAB5D7D919751DA4004F77ED /* Reachability */,
 				FAB5D7D219751CF8004F77ED /* Data Model */,
-				FAB5D7DD19752633004F77ED /* Controller */,
+				FA93001D1981428900142237 /* Service Controller */,
+				FAB5D7DD19752633004F77ED /* View Controller */,
 				FAB5D7B2197519AD004F77ED /* Images.xcassets */,
 				FAB5D7A1197519AD004F77ED /* Supporting Files */,
 			);
@@ -195,7 +208,7 @@
 			name = Reachability;
 			sourceTree = "<group>";
 		};
-		FAB5D7DD19752633004F77ED /* Controller */ = {
+		FAB5D7DD19752633004F77ED /* View Controller */ = {
 			isa = PBXGroup;
 			children = (
 				FAB5D7CF19751A77004F77ED /* KIOSplashViewController.h */,
@@ -205,7 +218,7 @@
 				FA79371B1976E84D00D5C802 /* KIORoomViewController.h */,
 				FA79371C1976E84D00D5C802 /* KIORoomViewController.m */,
 			);
-			name = Controller;
+			name = "View Controller";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -312,6 +325,7 @@
 				FADDED6D197D100A00798018 /* KIOAPIConnection.m in Sources */,
 				FAB5D7D119751A77004F77ED /* KIOSplashViewController.m in Sources */,
 				FAB5D7AB197519AD004F77ED /* KIOAppDelegate.m in Sources */,
+				FA93001C1981427D00142237 /* KIOServiceController.m in Sources */,
 				FADDED70197D105500798018 /* KIOBeacon.m in Sources */,
 				FAB5D7A7197519AD004F77ED /* main.m in Sources */,
 				FAB5D7D519751D09004F77ED /* KIOAPIDataStore.m in Sources */,

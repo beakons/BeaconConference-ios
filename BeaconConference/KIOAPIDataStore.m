@@ -22,17 +22,16 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
 + (instancetype)sharedInstance
 {
     static id sharedInstance = nil;
-    
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedInstance = [[self alloc] init];
+        sharedInstance = [self new];
     });
     
     return sharedInstance;
 }
 
 
-#pragma mark -
+#pragma mark - Publish
 
 /*!
  * @discussion load Beacon UUIDs
@@ -130,7 +129,7 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
     NSString *hostAPI = [NSString stringWithFormat:@"http://%@/beaconsapp", kKIO_API_HOST];
     NSString *stringURL = [NSString stringWithFormat:@"%@/object/%@/%@/%@", hostAPI, [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
 #if kKIO_SHOULD_PRINT_FLAG
-    NSLog(@"%@", stringURL);
+    NSLog(@"B_URL: %@", stringURL);
 #endif
     return [NSURL URLWithString:stringURL];
 }

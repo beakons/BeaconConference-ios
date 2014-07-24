@@ -22,10 +22,9 @@ NSString *const kKIO_API_ERROR_KEY = @"error";
 + (instancetype)loadDataFrom:(NSURL *)dataURL mainQueue:(RequestAPIData)block
 {
     static id sharedInstance = nil;
-    
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedInstance = [[self alloc] init];
+        sharedInstance = [self new];
     });
     
     // TODO: locale
@@ -57,12 +56,15 @@ NSString *const kKIO_API_ERROR_KEY = @"error";
                                                      [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
                                                  });
                                              } else {
+                                                 dispatch_async(dispatch_get_main_queue(), ^{
                                                  block(@{kKIO_API_ERROR_KEY: [jsonError localizedDescription]}, YES);
+                                                 });
                                              }
                                          } else {
+                                             dispatch_async(dispatch_get_main_queue(), ^{
                                              block(@{kKIO_API_ERROR_KEY: [error localizedDescription]}, NO);
+                                             });
                                          }
-                                         
                                      }] resume];
     }
 
