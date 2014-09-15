@@ -8,10 +8,8 @@
 
 static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 
-
 #import "KIOSplashViewController.h"
-#import "KIOShchigelskyAPI.h"
-
+#import "KIOAPIDataStore.h"
 
 @interface KIOSplashViewController () <UIAlertViewDelegate>
 @end
@@ -22,7 +20,6 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
     [self loadData];
 }
 
@@ -37,20 +34,26 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 
 - (void)loadData
 {
-    [[KIOShchigelskyAPI sharedInstance] loadUUIDReloadCash:YES mainQueue:^(BOOL success) {
+    [[KIOAPIDataStore dataStore] loadUUIDSuccessBlock:^(NSArray *uuids) {
         
-        if (success == YES) {
+        dispatch_async(dispatch_get_main_queue(), ^{
             [NSThread sleepForTimeInterval:1.0];
             [self performSegueWithIdentifier:kKIOSplashSegueSuccess sender:self];
-            
-        } else {
-            [[[UIAlertView alloc] initWithTitle:@"Attantion"
-                                        message:@"No conection to api.shchigelsky or internet is swith off"
+        });
+        
+    }
+                                           errorBlock:^(NSError *error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Attantion code: %i", (int)error.code]
+                                        message:error.userInfo[KIO_API_ERROR_DESCRIPTION_KEY]
                                        delegate:self
                               cancelButtonTitle:@"reload"
                               otherButtonTitles:@"exit", nil] show];
-        }
-    }];
+        });
+        
+    }
+     ];
 }
 
 #pragma mark - UIAlertViewDelegate
@@ -61,7 +64,7 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
         [self loadData];
     } else {
         [[UIApplication sharedApplication] performSelector:@selector(suspend)];
-        [NSThread sleepForTimeInterval:2.0];
+        [NSThread sleepForTimeInterval:1.0];
         exit(0);
     }
 }

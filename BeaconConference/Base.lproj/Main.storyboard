@@ -25,12 +25,12 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <segue destination="shu-6M-XWR" kind="modal" identifier="successSegue" id="Mcx-EP-3LB"/>
+                        <segue destination="shu-6M-XWR" kind="modal" identifier="successSegue" id="UeU-Dr-hHm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-20" y="-460"/>
+            <point key="canvasLocation" x="474" y="-460"/>
         </scene>
         <!--Beacon List View Controller-->
         <scene sceneID="olu-eN-yX3">
@@ -108,12 +108,13 @@
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cOa-jz-iTO" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1614" y="-460"/>
+            <point key="canvasLocation" x="2116" y="-460"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Navigation Controller - Table-->
         <scene sceneID="kVm-Lp-QvG">
             <objects>
                 <navigationController automaticallyAdjustsScrollViewInsets="NO" id="shu-6M-XWR" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Table" id="aTq-1p-9u0"/>
                     <toolbarItems/>
                     <navigationItem key="navigationItem" id="dM9-yu-l6i"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" id="RDM-dT-Lti">
@@ -127,7 +128,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EHG-t7-v4X" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1064" y="-460"/>
+            <point key="canvasLocation" x="1590" y="-460"/>
         </scene>
     </scenes>
     <resources>

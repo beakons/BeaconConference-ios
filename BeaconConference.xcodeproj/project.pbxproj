@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FA003C1A199CA70900776209 /* KIOUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = FA003C19199CA70900776209 /* KIOUtils.m */; };
+		FA4B584C19A4E0A400BBB1E5 /* KIOUtilsView.m in Sources */ = {isa = PBXBuildFile; fileRef = FA4B584B19A4E0A400BBB1E5 /* KIOUtilsView.m */; };
+		FA93001C1981427D00142237 /* KIOServiceController.m in Sources */ = {isa = PBXBuildFile; fileRef = FA93001B1981427D00142237 /* KIOServiceController.m */; };
 		FAB5D79B197519AC004F77ED /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB5D79A197519AC004F77ED /* Foundation.framework */; };
 		FAB5D79D197519AD004F77ED /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB5D79C197519AD004F77ED /* CoreGraphics.framework */; };
 		FAB5D79F197519AD004F77ED /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB5D79E197519AD004F77ED /* UIKit.framework */; };
@@ -21,9 +24,11 @@
 		FAB5D7C4197519AD004F77ED /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = FAB5D7C2197519AD004F77ED /* InfoPlist.strings */; };
 		FAB5D7C6197519AD004F77ED /* BeaconConferenceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7C5197519AD004F77ED /* BeaconConferenceTests.m */; };
 		FAB5D7D119751A77004F77ED /* KIOSplashViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D019751A77004F77ED /* KIOSplashViewController.m */; };
-		FAB5D7D519751D09004F77ED /* KIOShchigelskyAPI.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D419751D09004F77ED /* KIOShchigelskyAPI.m */; };
+		FAB5D7D519751D09004F77ED /* KIOAPIDataStore.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D419751D09004F77ED /* KIOAPIDataStore.m */; };
 		FAB5D7D819751D94004F77ED /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D719751D94004F77ED /* Reachability.m */; };
 		FAB5D7DC19752613004F77ED /* KIOBeaconListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7DB19752613004F77ED /* KIOBeaconListViewController.m */; };
+		FADDED6D197D100A00798018 /* KIOAPIConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = FADDED6C197D100A00798018 /* KIOAPIConnection.m */; };
+		FADDED70197D105500798018 /* KIOBeacon.m in Sources */ = {isa = PBXBuildFile; fileRef = FADDED6F197D105500798018 /* KIOBeacon.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,8 +42,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		FA003C18199CA70900776209 /* KIOUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOUtils.h; sourceTree = "<group>"; };
+		FA003C19199CA70900776209 /* KIOUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOUtils.m; sourceTree = "<group>"; };
+		FA4B584A19A4E0A400BBB1E5 /* KIOUtilsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOUtilsView.h; sourceTree = "<group>"; };
+		FA4B584B19A4E0A400BBB1E5 /* KIOUtilsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOUtilsView.m; sourceTree = "<group>"; };
 		FA9081A91975647A00B0710E /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		FA9081AA1975647A00B0710E /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		FA93001A1981427D00142237 /* KIOServiceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOServiceController.h; sourceTree = "<group>"; };
+		FA93001B1981427D00142237 /* KIOServiceController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOServiceController.m; sourceTree = "<group>"; };
 		FAB5D797197519AC004F77ED /* BeaconConference.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BeaconConference.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAB5D79A197519AC004F77ED /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		FAB5D79C197519AD004F77ED /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -58,12 +69,16 @@
 		FAB5D7C5197519AD004F77ED /* BeaconConferenceTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BeaconConferenceTests.m; sourceTree = "<group>"; };
 		FAB5D7CF19751A77004F77ED /* KIOSplashViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOSplashViewController.h; sourceTree = "<group>"; };
 		FAB5D7D019751A77004F77ED /* KIOSplashViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOSplashViewController.m; sourceTree = "<group>"; };
-		FAB5D7D319751D09004F77ED /* KIOShchigelskyAPI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOShchigelskyAPI.h; sourceTree = "<group>"; };
-		FAB5D7D419751D09004F77ED /* KIOShchigelskyAPI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOShchigelskyAPI.m; sourceTree = "<group>"; };
+		FAB5D7D319751D09004F77ED /* KIOAPIDataStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOAPIDataStore.h; sourceTree = "<group>"; };
+		FAB5D7D419751D09004F77ED /* KIOAPIDataStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOAPIDataStore.m; sourceTree = "<group>"; };
 		FAB5D7D619751D94004F77ED /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		FAB5D7D719751D94004F77ED /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 		FAB5D7DA19752613004F77ED /* KIOBeaconListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOBeaconListViewController.h; sourceTree = "<group>"; };
 		FAB5D7DB19752613004F77ED /* KIOBeaconListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOBeaconListViewController.m; sourceTree = "<group>"; };
+		FADDED6B197D100A00798018 /* KIOAPIConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOAPIConnection.h; sourceTree = "<group>"; };
+		FADDED6C197D100A00798018 /* KIOAPIConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOAPIConnection.m; sourceTree = "<group>"; };
+		FADDED6E197D105500798018 /* KIOBeacon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOBeacon.h; sourceTree = "<group>"; };
+		FADDED6F197D105500798018 /* KIOBeacon.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOBeacon.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +105,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FA003C1B199CAF4D00776209 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				FA003C18199CA70900776209 /* KIOUtils.h */,
+				FA003C19199CA70900776209 /* KIOUtils.m */,
+				FA4B584A19A4E0A400BBB1E5 /* KIOUtilsView.h */,
+				FA4B584B19A4E0A400BBB1E5 /* KIOUtilsView.m */,
+			);
+			name = Utils;
+			sourceTree = "<group>";
+		};
+		FA93001D1981428900142237 /* Service Controller */ = {
+			isa = PBXGroup;
+			children = (
+				FA93001A1981427D00142237 /* KIOServiceController.h */,
+				FA93001B1981427D00142237 /* KIOServiceController.m */,
+			);
+			name = "Service Controller";
+			sourceTree = "<group>";
+		};
 		FAB5D78E197519AC004F77ED = {
 			isa = PBXGroup;
 			children = (
@@ -126,9 +161,11 @@
 				FAB5D7A9197519AD004F77ED /* KIOAppDelegate.h */,
 				FAB5D7AA197519AD004F77ED /* KIOAppDelegate.m */,
 				FAB5D7AC197519AD004F77ED /* Main.storyboard */,
+				FA003C1B199CAF4D00776209 /* Utils */,
 				FAB5D7D919751DA4004F77ED /* Reachability */,
 				FAB5D7D219751CF8004F77ED /* Data Model */,
-				FAB5D7DD19752633004F77ED /* Controller */,
+				FA93001D1981428900142237 /* Service Controller */,
+				FAB5D7DD19752633004F77ED /* View Controller */,
 				FAB5D7B2197519AD004F77ED /* Images.xcassets */,
 				FAB5D7A1197519AD004F77ED /* Supporting Files */,
 			);
@@ -167,8 +204,12 @@
 		FAB5D7D219751CF8004F77ED /* Data Model */ = {
 			isa = PBXGroup;
 			children = (
-				FAB5D7D319751D09004F77ED /* KIOShchigelskyAPI.h */,
-				FAB5D7D419751D09004F77ED /* KIOShchigelskyAPI.m */,
+				FADDED6E197D105500798018 /* KIOBeacon.h */,
+				FADDED6F197D105500798018 /* KIOBeacon.m */,
+				FADDED6B197D100A00798018 /* KIOAPIConnection.h */,
+				FADDED6C197D100A00798018 /* KIOAPIConnection.m */,
+				FAB5D7D319751D09004F77ED /* KIOAPIDataStore.h */,
+				FAB5D7D419751D09004F77ED /* KIOAPIDataStore.m */,
 			);
 			name = "Data Model";
 			sourceTree = "<group>";
@@ -182,7 +223,7 @@
 			name = Reachability;
 			sourceTree = "<group>";
 		};
-		FAB5D7DD19752633004F77ED /* Controller */ = {
+		FAB5D7DD19752633004F77ED /* View Controller */ = {
 			isa = PBXGroup;
 			children = (
 				FAB5D7CF19751A77004F77ED /* KIOSplashViewController.h */,
@@ -190,7 +231,7 @@
 				FAB5D7DA19752613004F77ED /* KIOBeaconListViewController.h */,
 				FAB5D7DB19752613004F77ED /* KIOBeaconListViewController.m */,
 			);
-			name = Controller;
+			name = "View Controller";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -203,6 +244,7 @@
 				FAB5D793197519AC004F77ED /* Sources */,
 				FAB5D794197519AC004F77ED /* Frameworks */,
 				FAB5D795197519AC004F77ED /* Resources */,
+				FA1B235919BF5461009E9398 /* Bump Build Number */,
 			);
 			buildRules = (
 			);
@@ -287,16 +329,38 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		FA1B235919BF5461009E9398 /* Bump Build Number */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Bump Build Number";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if\n    [[\"$CONFIGURATION\"==\"Release\"]] && [[\"$USER\"==\"_teamsserver\"]]\nthen\n    echo \"Bumping build Release number\"\n    agvtool bump -increment -minor -version\n    NEW_BUILD_NUMBER=$(agvtool what -version -terse)\n    /usr/libexec Plistbuddy -c \"Set CFBundleVersion ${NEW_BUILD_NUMBER}\" ${PROJECT_DIR}/${INFOPLIST_FILE}\n    git commit -a -m \"Bump to build $NEW_BUILD_NUMBER\"\n    git config push.default simple\n    git push\nelse\n    echo \"Setting build number to DEV\"\n    /usr/libexec/Plistbuddy -c \"Set CFBundleVersion DEV\" ${PROJECT_DIR}/${INFOPLIST_FILE}\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		FAB5D793197519AC004F77ED /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				FAB5D7DC19752613004F77ED /* KIOBeaconListViewController.m in Sources */,
+				FADDED6D197D100A00798018 /* KIOAPIConnection.m in Sources */,
 				FAB5D7D119751A77004F77ED /* KIOSplashViewController.m in Sources */,
+				FA4B584C19A4E0A400BBB1E5 /* KIOUtilsView.m in Sources */,
 				FAB5D7AB197519AD004F77ED /* KIOAppDelegate.m in Sources */,
+				FA93001C1981427D00142237 /* KIOServiceController.m in Sources */,
+				FA003C1A199CA70900776209 /* KIOUtils.m in Sources */,
+				FADDED70197D105500798018 /* KIOBeacon.m in Sources */,
 				FAB5D7A7197519AD004F77ED /* main.m in Sources */,
-				FAB5D7D519751D09004F77ED /* KIOShchigelskyAPI.m in Sources */,
+				FAB5D7D519751D09004F77ED /* KIOAPIDataStore.m in Sources */,
 				FAB5D7D819751D94004F77ED /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -373,6 +437,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
+					"KIOLOG_DEDUG=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
