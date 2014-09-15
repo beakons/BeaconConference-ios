@@ -16,7 +16,6 @@ extern NSString *const kKIOServiceLocationErrorNotification;
 
 @interface KIOServiceController : NSObject
 
-+ (instancetype)sharedService;
-- (void)startMonitoringBeaconsWithUUID:(NSUUID *)uuid;
++ (instancetype)startMonitoringBeaconWithUUID:(NSUUID *)uuid;
 
 @end

@@ -6,69 +6,85 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
-@import CoreLocation;
+NSString *const KIO_API_HOST = @"54.85.60.100";
+NSString *const KIO_API_PORT = @"80";
 
+NSString *const KIO_API_ERROR_DOMAIN = @"ru.beaconConference.error.domain";
+NSString *const KIO_API_ERROR_DESCRIPTION_KEY = @"ru.beaconConference.error.key";
 
-NSString *const kKIO_API_HOST = @"54.85.60.100";
-NSString *const kKIO_API_ERROR_KEY = @"error";
+NSInteger const KIO_API_ERROR_CODE_HOST = 101;
+NSInteger const KIO_API_ERROR_CODE_DATA = 102;
 
 
 #import "KIOAPIConnection.h"
 #import "Reachability.h"
 
-
 @implementation KIOAPIConnection
 
-+ (instancetype)loadDataFrom:(NSURL *)dataURL mainQueue:(RequestAPIData)block
++ (instancetype)performRequestWithURL:(NSURL *)dataURL
+                   withLastUpdateTime:(NSDate *)lastUpdateTime
+                         successBlock:(void(^)(NSData *data))successBlock
+                           errorBlock:(void(^)(NSError *error))errorBlock
 {
     static id sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [self new];
     });
-    
+
     // TODO: locale
+    // NSString *localeIdentifier = [[[NSLocale currentLocale] localeIdentifier] substringToIndex:2];
+
+    // TODO: lastUpdateTime
     // NSString *localeIdentifier = [[[NSLocale currentLocale] localeIdentifier] substringToIndex:2];
     
     Reachability *reachabilityHost = [Reachability reachabilityWithHostName:[dataURL host]];
     NetworkStatus reachabilityHostStatus = reachabilityHost.currentReachabilityStatus;
     
     if (reachabilityHostStatus == NotReachable) {
+        
+        NSString *errorString = [NSString stringWithFormat:@"Host %@ status is not responced", KIO_API_HOST];
+        NSError *er = [NSError errorWithDomain:KIO_API_ERROR_DOMAIN
+                                          code:KIO_API_ERROR_CODE_HOST
+                                      userInfo:@{KIO_API_ERROR_DESCRIPTION_KEY : errorString}];
+
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSDictionary *error = @{kKIO_API_ERROR_KEY: @"Reachability Host Status is not reachable, this meens server host is not responced"};
-            block(error, NO);
+            errorBlock(er);
         });
+        
     } else {
         
         [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
-        [[[NSURLSession sharedSession] dataTaskWithURL:dataURL
-                                     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                         
-                                         if (data && !error) {
-                                             NSError *jsonError;
-                                             NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:data
-                                                                                                      options:NSJSONReadingAllowFragments
-                                                                                                        error:&jsonError];
-                                             if (!jsonError) {
-                                                 
-                                                 dispatch_async(dispatch_get_main_queue(), ^{
-                                                     if(block) block(jsonData, YES);
-                                                     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-                                                 });
-                                             } else {
-                                                 dispatch_async(dispatch_get_main_queue(), ^{
-                                                 block(@{kKIO_API_ERROR_KEY: [jsonError localizedDescription]}, YES);
-                                                 });
-                                             }
-                                         } else {
-                                             dispatch_async(dispatch_get_main_queue(), ^{
-                                             block(@{kKIO_API_ERROR_KEY: [error localizedDescription]}, NO);
-                                             });
-                                         }
-                                     }] resume];
-    }
+        
+        NSURLSession *session = [NSURLSession sharedSession];
+        [[session dataTaskWithURL:dataURL
+                completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                    
+                    if (data && !error) {
+                        
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            successBlock(data);
+                            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+                        });
+                        
+                    } else {
+                        
+                        NSError *er =
+                        [NSError errorWithDomain:KIO_API_ERROR_DOMAIN
+                                            code:KIO_API_ERROR_CODE_DATA
+                                        userInfo:@{KIO_API_ERROR_DESCRIPTION_KEY : [error localizedDescription]}];
 
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            errorBlock(er);
+                            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+                        });
+                        
+                    }
+                }] resume];
+    }
+    
     return sharedInstance;
 }
+
 
 @end

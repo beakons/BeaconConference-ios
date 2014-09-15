@@ -25,7 +25,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <connections>
-                        <segue destination="u9J-O5-qkD" kind="modal" identifier="successSegue" id="UTu-g2-Keb"/>
+                        <segue destination="shu-6M-XWR" kind="modal" identifier="successSegue" id="UeU-Dr-hHm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
@@ -130,80 +130,9 @@
             </objects>
             <point key="canvasLocation" x="1590" y="-460"/>
         </scene>
-        <!--Room View Controller-->
-        <scene sceneID="fgC-fX-PaS">
-            <objects>
-                <viewController id="DVu-df-uhg" customClass="KIORoomViewController" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="k82-qS-FOM"/>
-                        <viewControllerLayoutGuide type="bottom" id="y7X-Ny-T8M"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="M4V-px-3WB">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="room_bg" translatesAutoresizingMaskIntoConstraints="NO" id="3W8-wb-VOl" userLabel="room_bg">
-                                <rect key="frame" x="0.0" y="64" width="320" height="455"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                            </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="z0F-Ta-XSV" userLabel="room_state">
-                                <rect key="frame" x="0.0" y="64" width="320" height="455"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                            </imageView>
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="WSS-Jm-Psl"/>
-                    <connections>
-                        <outlet property="roomLocation" destination="z0F-Ta-XSV" id="UoK-2z-pHu"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="FrA-yi-AT8" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="2116" y="327"/>
-        </scene>
-        <!--Tab Bar Controller-->
-        <scene sceneID="Xjb-UE-ZUy">
-            <objects>
-                <tabBarController automaticallyAdjustsScrollViewInsets="NO" id="u9J-O5-qkD" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <nil key="simulatedBottomBarMetrics"/>
-                    <tabBar key="tabBar" contentMode="scaleToFill" id="DoU-HE-DSb">
-                        <autoresizingMask key="autoresizingMask"/>
-                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                    </tabBar>
-                    <connections>
-                        <segue destination="shu-6M-XWR" kind="relationship" relationship="viewControllers" id="0F3-7G-ZWX"/>
-                        <segue destination="AMo-Tv-dpz" kind="relationship" relationship="viewControllers" id="WAO-xV-A8g"/>
-                    </connections>
-                </tabBarController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="vgv-t5-jAM" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1064" y="-460"/>
-        </scene>
-        <!--Navigation Controller - Room-->
-        <scene sceneID="KtO-HA-ZiW">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="AMo-Tv-dpz" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Room" id="wEC-1A-vSB"/>
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="ZRs-jE-09w">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="DVu-df-uhg" kind="relationship" relationship="rootViewController" id="Hi2-ly-VB9"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="bw0-7j-5a6" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1590" y="327"/>
-        </scene>
     </scenes>
     <resources>
         <image name="ic_nav_server_str" width="24" height="24"/>
-        <image name="room_bg" width="320" height="455"/>
     </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>

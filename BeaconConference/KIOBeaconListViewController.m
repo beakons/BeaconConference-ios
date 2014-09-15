@@ -11,6 +11,7 @@
 #import "KIOBeaconListViewController.h"
 #import "KIOAPIDataStore.h"
 #import "KIOServiceController.h"
+#import "KIOBeacon.h"
 
 typedef NS_ENUM(NSUInteger, TableViewDataStyle){
     TableViewDataStyleServer,
@@ -21,7 +22,6 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 
 @property (nonatomic, weak) IBOutlet UIBarButtonItem *dataStyleButton;
 @property (nonatomic, assign) TableViewDataStyle tableViewDataStyle;
-
 @property (nonatomic, strong) NSArray *beacons;
 
 @end
@@ -33,29 +33,71 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 {
     [super viewDidLoad];
     
-    id uuids = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore sharedInstance] pathDataFile:kKIO_API_CASH_UUID_FILE]];
-    NSString *beaconUUID = [[uuids valueForKey:kKIO_API_UUIDS_KEY] firstObject];
-    NSLog(@"beaconUUID: %@", beaconUUID);
-    
-    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:beaconUUID];
-    [[KIOServiceController sharedService] startMonitoringBeaconsWithUUID:uuid];
-    
-    [[KIOAPIDataStore sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
+    [self setupServices];
+    [self setupAPIData];
     
     self.tableViewDataStyle = TableViewDataStyleBeacon;
     
     self.refreshControl = [UIRefreshControl new];
-    [self.refreshControl addTarget:self action:@selector(reload) forControlEvents:UIControlEventValueChanged];
-    
+    [self.refreshControl addTarget:self
+                            action:@selector(reloadPullToRefresh)
+                  forControlEvents:UIControlEventValueChanged];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceBluetoothONNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceBluetoothOFFNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceExitBeaconRegionNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothState:) name:kKIOServiceEnterBeaconRegionNotification object:nil];
-
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(errorNotification:) name:kKIOServiceLocationErrorNotification object:nil];
-
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(beaconsCome:) name:kKIOServiceBeaconsInRegionNotification object:nil];
+}
+
+
+#pragma mark - Setup data
+
+- (void)setupServices
+{
+    [[KIOAPIDataStore dataStore] loadUUIDSuccessBlock:^(NSArray *uuids) {
+        
+        NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:[uuids firstObject]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [KIOServiceController startMonitoringBeaconWithUUID:uuid];
+            KIOLog(@"%@", uuids);
+        });
+        
+    }
+                                           errorBlock:^(NSError *error) {
+                                               
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Attantion code: %i", (int)error.code]
+                                        message:error.userInfo[KIO_API_ERROR_DESCRIPTION_KEY]
+                                       delegate:nil
+                              cancelButtonTitle:@"ok"
+                              otherButtonTitles:nil] show];
+        });
+    }];
+}
+
+- (void)setupAPIData
+{
+    [[KIOAPIDataStore dataStore] loadBeaconSuccessBlock:^(NSArray *beacons) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            for (KIOBeacon *beacon in beacons) {
+                KIOLog(@"%@", beacon);
+            }
+        });
+        
+    }
+                                             errorBlock:^(NSError *error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Attantion code: %i", (int)error.code]
+                                        message:error.userInfo[KIO_API_ERROR_DESCRIPTION_KEY]
+                                       delegate:nil
+                              cancelButtonTitle:@"ok"
+                              otherButtonTitles:nil] show];
+        });
+    }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -75,10 +117,15 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 - (void)blutoothState:(NSNotification *)notification
 {
     NSString *state = notification.name;
+    
     if ([state isEqualToString:kKIOServiceBluetoothONNotification]) {
         self.navigationItem.title = @"BLUTOOTH_ON";
         [self.tableView reloadData];
     }
+    else if ([state isEqualToString:kKIOServiceEnterBeaconRegionNotification]) {
+        [self.tableView reloadData];
+    }
+    
     else if ([state isEqualToString:kKIOServiceBluetoothOFFNotification]) {
         self.beacons = nil;
         self.navigationItem.title = @"BLUTOOTH_OFF";
@@ -88,21 +135,11 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
         self.beacons = nil;
         [self.tableView reloadData];
     }
-    else if ([state isEqualToString:kKIOServiceEnterBeaconRegionNotification]) {
-        NSLog(@"EnterBeaconRegion");
-        [self.tableView reloadData];
-    }
 }
 
 - (void)beaconsCome:(NSNotification *)notification
 {
-    self.beacons = (NSArray *)notification.object;
-    if ([[KIOAPIDataStore sharedInstance] cashExists:kKIO_API_CASH_DATA_FILE] == NO) {
-        for (CLBeacon *beacon in self.beacons) {
-            [[KIOAPIDataStore sharedInstance] loadBeacon:beacon reloadCash:NO mainQueue:nil];
-        }
-    }
-
+    self.beacons = (NSArray *)notification.userInfo[@"beacons"];
     [self.tableView reloadData];
 }
 
@@ -110,16 +147,18 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 {
     [[[UIAlertView alloc] initWithTitle:@"Location not avalible"
                                 message:@"Pleace check location service! Or call support..."
-                               delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+                               delegate:nil
+                      cancelButtonTitle:@"OK"
+                      otherButtonTitles:nil] show];
 }
 
 
 #pragma mark - Action
 
-- (void)reload
+- (void)reloadPullToRefresh
 {
     self.beacons = nil;
-    [[KIOAPIDataStore sharedInstance] deleteDataFile:kKIO_API_CASH_DATA_FILE];
+    [[KIOAPIDataStore dataStore] deleteDataFile:KIO_API_CASH_DATA_FILE];
     
     [self.tableView reloadData];
     [self.refreshControl endRefreshing];
@@ -153,28 +192,25 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 {
     UITableViewCell *cell;
     
-    if (self.beacons.count > 0) {
-
-        CLBeacon *beacon = self.beacons[indexPath.row];
-
-        switch (self.tableViewDataStyle) {
-                
-            case TableViewDataStyleBeacon: {
-                cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleBeacon" forIndexPath:indexPath];
-                cell.textLabel.text = [NSString stringWithFormat:@"minor: %@, major: %@", beacon.minor, beacon.major];
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"%.2f", beacon.accuracy];
-            }break;
-                
-            case TableViewDataStyleServer: {
-                cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleServer" forIndexPath:indexPath];
-                NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
-                NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
-                cell.textLabel.text = (NSString *)bdata[beaconID][@"description"] ? bdata[beaconID][@"description"] : nil;
-                cell.detailTextLabel.text = [self proximityData:beacon];
-            }break;
-        }
-        cell.backgroundColor = [self proximityColor:beacon];
+    CLBeacon *beacon = self.beacons[indexPath.row];
+    
+    switch (self.tableViewDataStyle) {
+            
+        case TableViewDataStyleBeacon: {
+            cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleBeacon" forIndexPath:indexPath];
+            cell.textLabel.text = [NSString stringWithFormat:@"mi:%@, mj:%@", beacon.minor, beacon.major];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"ac:%2.1f, rs:%2.1f", beacon.accuracy, (float)beacon.rssi];
+        }break;
+            
+        case TableViewDataStyleServer: {
+            cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleServer" forIndexPath:indexPath];
+            NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore dataStore] pathDataFile:KIO_API_CASH_DATA_FILE]];
+            NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
+            cell.textLabel.text = (NSString *)bdata[beaconID][@"description"] ? bdata[beaconID][@"description"] : nil;
+            cell.detailTextLabel.text = [self proximityData:beacon];
+        }break;
     }
+    cell.backgroundColor = [self proximityColor:beacon];
     
     return cell;
 }
@@ -202,7 +238,7 @@ typedef NS_ENUM(NSUInteger, TableViewDataStyle){
 
 - (NSString *)proximityData:(CLBeacon *)beacon
 {
-    NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore sharedInstance] pathDataFile:kKIO_API_CASH_DATA_FILE]];
+    NSDictionary *bdata = [NSDictionary dictionaryWithContentsOfFile:[[KIOAPIDataStore dataStore] pathDataFile:KIO_API_CASH_DATA_FILE]];
     NSString *beaconID = [NSString stringWithFormat:@"%@-%@-%@", [beacon.proximityUUID.UUIDString lowercaseString], beacon.major, beacon.minor];
 
     switch (beacon.proximity) {
