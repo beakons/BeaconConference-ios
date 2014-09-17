@@ -8,7 +8,6 @@
 
 NSString *const KIO_API_CASH_UUID_FILE = @"uuid_list.plist";
 NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
-NSString *const kKIO_API_UUIDS_KEY = @"uuids";
 
 
 #import "KIOAPIDataStore.h"
@@ -41,6 +40,7 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
         
         dispatch_async(dispatch_get_main_queue(), ^{
             successBlock(array);
+            KIOLog(@"take beacon cashed data: %@", [self dateModificationCashFile:KIO_API_CASH_DATA_FILE]);
         });
         
     } else {
@@ -51,17 +51,28 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
                              withLastUpdateTime:nil
                                    successBlock:^(NSData *data) {
                                        
-                                       NSArray *beacons = [NSJSONSerialization JSONObjectWithData:data
-                                                                                          options:NSJSONReadingMutableLeaves
-                                                                                            error:nil];
-                                       
-                                       [beacons writeToFile:[self pathDataFile:KIO_API_CASH_DATA_FILE] atomically:YES];
-                                       NSArray *array = [self parsedBeaconDataFile];
-                                       
-                                       dispatch_async(dispatch_get_main_queue(), ^{
-                                           successBlock(array);
-                                       });
-                                       
+                                       NSError *error = nil;
+                                       NSArray *beacons =
+                                       [NSJSONSerialization JSONObjectWithData:data
+                                                                       options:NSJSONReadingMutableLeaves
+                                                                         error:&error];
+                                       if (error) {
+                                           
+                                           dispatch_async(dispatch_get_main_queue(), ^{
+                                               errorBlock(error);
+                                               KIOLog(@"%error: @\n", error);
+                                           });
+                                           
+                                       } else {
+                                           
+                                           [beacons writeToFile:[self pathDataFile:KIO_API_CASH_DATA_FILE] atomically:YES];
+                                           NSArray *array = [self parsedBeaconDataFile];
+
+                                           dispatch_async(dispatch_get_main_queue(), ^{
+                                               successBlock(array);
+                                               KIOLog(@"load beacon api data");
+                                           });
+                                       }
                                    }
                                      errorBlock:^(NSError *error) {
                                          
@@ -85,6 +96,7 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
         
         dispatch_async(dispatch_get_main_queue(), ^{
             successBlock(array);
+            KIOLog(@"take uuid cashed data: %@", [self dateModificationCashFile:KIO_API_CASH_UUID_FILE]);
         });
         
     } else {
@@ -103,6 +115,7 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
                                        
                                        dispatch_async(dispatch_get_main_queue(), ^{
                                            successBlock(array);
+                                           KIOLog(@"load uuid api data");
                                        });
                                        
                                    }
@@ -124,7 +137,7 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
 - (NSArray *)parsedUUIDDataFile
 {
     NSDictionary *dataBase = [NSDictionary dictionaryWithContentsOfFile:[self pathDataFile:KIO_API_CASH_UUID_FILE]];
-    return dataBase[kKIO_API_UUIDS_KEY];
+    return dataBase[@"uuids"];
 }
 
 
@@ -186,7 +199,7 @@ NSString *const kKIO_API_UUIDS_KEY = @"uuids";
 - (NSDate *)dateModificationCashFile:(NSString *)fileName
 {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSDictionary *fileAttributes = [fileManager attributesOfFileSystemForPath:[self pathDataFile:fileName] error:nil];
+    NSDictionary *fileAttributes = [fileManager attributesOfItemAtPath:[self pathDataFile:fileName] error:nil];
     
     return [fileAttributes fileModificationDate];
 }

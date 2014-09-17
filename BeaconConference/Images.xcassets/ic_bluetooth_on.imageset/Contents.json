@@ -3,12 +3,12 @@
     {
       "idiom" : "universal",
       "scale" : "1x",
-      "filename" : "field_office_rb.png"
+      "filename" : "bluetooth_on.png"
     },
     {
       "idiom" : "universal",
       "scale" : "2x",
-      "filename" : "field_office_rb@2x.png"
+      "filename" : "bluetooth_on@2x.png"
     }
   ],
   "info" : {

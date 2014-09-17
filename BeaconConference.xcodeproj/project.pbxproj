@@ -26,7 +26,7 @@
 		FAB5D7D119751A77004F77ED /* KIOSplashViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D019751A77004F77ED /* KIOSplashViewController.m */; };
 		FAB5D7D519751D09004F77ED /* KIOAPIDataStore.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D419751D09004F77ED /* KIOAPIDataStore.m */; };
 		FAB5D7D819751D94004F77ED /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7D719751D94004F77ED /* Reachability.m */; };
-		FAB5D7DC19752613004F77ED /* KIOBeaconListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7DB19752613004F77ED /* KIOBeaconListViewController.m */; };
+		FAB5D7DC19752613004F77ED /* KIOBeaconViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FAB5D7DB19752613004F77ED /* KIOBeaconViewController.m */; };
 		FADDED6D197D100A00798018 /* KIOAPIConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = FADDED6C197D100A00798018 /* KIOAPIConnection.m */; };
 		FADDED70197D105500798018 /* KIOBeacon.m in Sources */ = {isa = PBXBuildFile; fileRef = FADDED6F197D105500798018 /* KIOBeacon.m */; };
 /* End PBXBuildFile section */
@@ -73,8 +73,8 @@
 		FAB5D7D419751D09004F77ED /* KIOAPIDataStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOAPIDataStore.m; sourceTree = "<group>"; };
 		FAB5D7D619751D94004F77ED /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		FAB5D7D719751D94004F77ED /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		FAB5D7DA19752613004F77ED /* KIOBeaconListViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOBeaconListViewController.h; sourceTree = "<group>"; };
-		FAB5D7DB19752613004F77ED /* KIOBeaconListViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOBeaconListViewController.m; sourceTree = "<group>"; };
+		FAB5D7DA19752613004F77ED /* KIOBeaconViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOBeaconViewController.h; sourceTree = "<group>"; };
+		FAB5D7DB19752613004F77ED /* KIOBeaconViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOBeaconViewController.m; sourceTree = "<group>"; };
 		FADDED6B197D100A00798018 /* KIOAPIConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOAPIConnection.h; sourceTree = "<group>"; };
 		FADDED6C197D100A00798018 /* KIOAPIConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KIOAPIConnection.m; sourceTree = "<group>"; };
 		FADDED6E197D105500798018 /* KIOBeacon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KIOBeacon.h; sourceTree = "<group>"; };
@@ -228,8 +228,8 @@
 			children = (
 				FAB5D7CF19751A77004F77ED /* KIOSplashViewController.h */,
 				FAB5D7D019751A77004F77ED /* KIOSplashViewController.m */,
-				FAB5D7DA19752613004F77ED /* KIOBeaconListViewController.h */,
-				FAB5D7DB19752613004F77ED /* KIOBeaconListViewController.m */,
+				FAB5D7DA19752613004F77ED /* KIOBeaconViewController.h */,
+				FAB5D7DB19752613004F77ED /* KIOBeaconViewController.m */,
 			);
 			name = "View Controller";
 			sourceTree = "<group>";
@@ -351,7 +351,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FAB5D7DC19752613004F77ED /* KIOBeaconListViewController.m in Sources */,
+				FAB5D7DC19752613004F77ED /* KIOBeaconViewController.m in Sources */,
 				FADDED6D197D100A00798018 /* KIOAPIConnection.m in Sources */,
 				FAB5D7D119751A77004F77ED /* KIOSplashViewController.m in Sources */,
 				FA4B584C19A4E0A400BBB1E5 /* KIOUtilsView.m in Sources */,

@@ -14,11 +14,9 @@
 
 NSString *const kKIOServiceBluetoothONNotification = @"ru.kirillosipov.kKIOServiceBluetoothONNotification";
 NSString *const kKIOServiceBluetoothOFFNotification = @"ru.kirillosipov.kKIOServiceBluetoothOFFNotification";
-
 NSString *const kKIOServiceEnterBeaconRegionNotification = @"ru.kirillosipov.kKIOServiceEnterBeaconRegionNotification";
 NSString *const kKIOServiceExitBeaconRegionNotification = @"ru.kirillosipov.kKIOServiceExitBeaconRegionNotification";
 NSString *const kKIOServiceBeaconsInRegionNotification = @"ru.kirillosipov.kKIOServiceBeaconsInRegionNotification";
-
 NSString *const kKIOServiceLocationErrorNotification = @"ru.kirillosipov.kKIOServiceLocationErrorNotification";
 
 
@@ -86,31 +84,28 @@ NSString *const kKIOServiceLocationErrorNotification = @"ru.kirillosipov.kKIOSer
                         userInfo:userInfo];
 }
 
-
 // TODO: transfer Local Notification to another class
-
-- (void)postLocalNotificationInsideBeaconRegion:(CLBeaconRegion *)beaconRegion
+typedef NS_ENUM(NSUInteger, KIOLocalNotificationType){
+    KIOLocalNotificationTypePost = 0,
+    KIOLocalNotificationTypeDelete
+};
+    
+- (void)localNotificationType:(KIOLocalNotificationType)localNotificationType
+                 beaconRegion:(CLBeaconRegion *)beaconRegion
 {
     UIApplication *application = [UIApplication sharedApplication];
     NSArray *localNotifications = [application scheduledLocalNotifications];
-    
-    for (UILocalNotification *localNotification in localNotifications) {
-        if ([localNotification.userInfo[@"proximityUUID"] isEqualToString:[beaconRegion.proximityUUID UUIDString]] &&
-            [localNotification.userInfo[@"minor"] isEqualToNumber:beaconRegion.minor] &&
-            [localNotification.userInfo[@"major"] isEqualToNumber:beaconRegion.major]) {
-            [application cancelLocalNotification:localNotification];
-        }
+    if (localNotifications.count > 0) {
+        [application cancelAllLocalNotifications];
     }
     
-    UILocalNotification *notification = [[UILocalNotification alloc] init];
-    notification.alertBody = [NSString stringWithFormat:@"mi: %@, mj: %@", beaconRegion.minor, beaconRegion.major];
-    notification.hasAction = NO;
-    notification.soundName = UILocalNotificationDefaultSoundName;
-    notification.timeZone = [NSTimeZone defaultTimeZone];
-    notification.userInfo = @{@"proximityUUID": [beaconRegion.proximityUUID UUIDString],
-                              @"minor": beaconRegion.minor,
-                              @"major": beaconRegion.major};
-    [application presentLocalNotificationNow:notification];
+    if (localNotificationType == KIOLocalNotificationTypePost) {
+        UILocalNotification *notification = [[UILocalNotification alloc] init];
+        notification.alertBody = [NSString stringWithFormat:@"%@", [beaconRegion.proximityUUID UUIDString]];
+        notification.soundName = UILocalNotificationDefaultSoundName;
+        notification.userInfo = @{@"proximityUUID": [beaconRegion.proximityUUID UUIDString]};
+        [application presentLocalNotificationNow:notification];
+    }
 }
 
 
@@ -140,10 +135,9 @@ NSString *const kKIOServiceLocationErrorNotification = @"ru.kirillosipov.kKIOSer
         if ([beaconRegion.proximityUUID isEqual:self.beaconRegion.proximityUUID]) {
             
             [self.locationManager startRangingBeaconsInRegion:beaconRegion];
-            [self postNotificationName:kKIOServiceEnterBeaconRegionNotification
-                              userInfo:nil];
             
-            [self postLocalNotificationInsideBeaconRegion:beaconRegion];
+            [self postNotificationName:kKIOServiceEnterBeaconRegionNotification userInfo:nil];
+            [self localNotificationType:KIOLocalNotificationTypePost beaconRegion:beaconRegion];
         }
     }
 }
@@ -153,23 +147,22 @@ NSString *const kKIOServiceLocationErrorNotification = @"ru.kirillosipov.kKIOSer
     if ([region isKindOfClass:[CLBeaconRegion class]]) {
         CLBeaconRegion *beaconRegion = (CLBeaconRegion *)region;
         if ([beaconRegion.proximityUUID isEqual:self.beaconRegion.proximityUUID]) {
-
-        [self.locationManager stopRangingBeaconsInRegion:beaconRegion];
-        [self postNotificationName:kKIOServiceExitBeaconRegionNotification
-                          userInfo:nil];
             
+            [self.locationManager stopRangingBeaconsInRegion:beaconRegion];
+            
+            [self postNotificationName:kKIOServiceExitBeaconRegionNotification userInfo:nil];
+            [self localNotificationType:KIOLocalNotificationTypeDelete beaconRegion:beaconRegion];
         }
     }
 }
 
-
+// didRangeBeacons: is called once per second per beacon, and does not track changes in proximity!
 - (void)locationManager:(CLLocationManager *)manager didRangeBeacons:(NSArray *)beacons inRegion:(CLBeaconRegion *)region
 {
-    if (beacons.count > 0) {
+    if (beacons.count > 0 && self.peripheralManager.state == CBPeripheralManagerStatePoweredOn) {
         if ([region.proximityUUID isEqual:self.beaconRegion.proximityUUID]) {
 
-            [self postNotificationName:kKIOServiceBeaconsInRegionNotification
-                              userInfo:@{@"beacons": beacons}];
+            [self postNotificationName:kKIOServiceBeaconsInRegionNotification userInfo:@{@"beacons": beacons}];
             
         }
     }
@@ -180,22 +173,17 @@ NSString *const kKIOServiceLocationErrorNotification = @"ru.kirillosipov.kKIOSer
     if ([region isKindOfClass:[CLBeaconRegion class]]) {
         CLBeaconRegion *beaconRegion = (CLBeaconRegion *)region;
 
-        switch (state) {
-            case CLRegionStateInside: {
-                [self.locationManager startRangingBeaconsInRegion:beaconRegion];
-            }break;
-                
-            default: {
-                [self.locationManager stopRangingBeaconsInRegion:beaconRegion];
-            }break;
+        if (state == CLRegionStateInside) {
+            [self.locationManager startRangingBeaconsInRegion:beaconRegion];
+        } else {
+            [self.locationManager stopRangingBeaconsInRegion:beaconRegion];
         }
     }
 }
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
 {
-    [self postNotificationName:kKIOServiceLocationErrorNotification
-                      userInfo:@{@"error": error}];
+    [self postNotificationName:kKIOServiceLocationErrorNotification userInfo:@{@"error": error}];
 }
 
 @end
