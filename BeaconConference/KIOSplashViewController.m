@@ -9,6 +9,7 @@
 static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 
 #import "KIOSplashViewController.h"
+#import "KIOAPIConnection.h"
 #import "KIOAPIDataStore.h"
 
 @interface KIOSplashViewController () <UIAlertViewDelegate>
@@ -19,7 +20,7 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
+    [super viewDidLoad];    
     [self loadData];
 }
 
@@ -37,7 +38,10 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
     [[KIOAPIDataStore dataStore] loadUUIDSuccessBlock:^(NSArray *uuids) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            [NSThread sleepForTimeInterval:1.0];
+            
+            KIOLog(@"loadUUIDSuccessBlock %@", uuids);
+            
+            [NSThread sleepForTimeInterval:.3f];
             [self performSegueWithIdentifier:kKIOSplashSegueSuccess sender:self];
         });
         
@@ -64,7 +68,7 @@ static NSString *const kKIOSplashSegueSuccess = @"successSegue";
         [self loadData];
     } else {
         [[UIApplication sharedApplication] performSelector:@selector(suspend)];
-        [NSThread sleepForTimeInterval:1.0];
+        [NSThread sleepForTimeInterval:.3f];
         exit(0);
     }
 }

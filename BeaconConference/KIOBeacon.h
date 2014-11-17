@@ -71,7 +71,7 @@ KIOBeaconPointMake (int x, int y, int z) {
 @interface KIOBeacon : NSObject
 
 @property (assign, nonatomic) KIOBeaconPoint point;
-@property (strong, nonatomic) NSString *description;
+@property (strong, nonatomic) NSString *beaconDescription;
 
 @property (strong, nonatomic) NSUUID *proximityUUID;
 @property (strong, nonatomic) NSNumber *major;
@@ -88,5 +88,6 @@ KIOBeaconPointMake (int x, int y, int z) {
                                 major:(NSNumber *)major
                                 minor:(NSNumber *)minor;
 
+- (NSString *)beaconID;
 
 @end

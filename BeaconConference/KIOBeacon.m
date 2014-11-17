@@ -41,4 +41,14 @@ NSString *const KIO_BEACON_OBJECT__PROXIMITY_IMMEDIATE_KEY = @"description_immed
     return self;
 }
 
+- (NSString *)description
+{
+    return self.beaconDescription;
+}
+
+- (NSString *)beaconID
+{
+    return [NSString stringWithFormat:@"mj%imn%i", [self.major intValue], [self.minor intValue]];
+}
+
 @end

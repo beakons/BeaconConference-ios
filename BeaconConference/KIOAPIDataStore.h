@@ -6,12 +6,12 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
-#import "KIOAPIConnection.h"
-
+@class KIOBeacon;
+@class KIOAPIConnection;
+@class CLBeacon;
 
 extern NSString *const KIO_API_CASH_UUID_FILE;
 extern NSString *const KIO_API_CASH_DATA_FILE;
-
 
 @interface KIOAPIDataStore : NSObject
 
@@ -24,5 +24,7 @@ extern NSString *const KIO_API_CASH_DATA_FILE;
 - (NSString *)pathDataFile:(NSString *)fileName;
 - (void)deleteDataFile:(NSString *)fileName;
 - (NSDate *)dateModificationCashFile:(NSString *)fileName;
+
+- (KIOBeacon *)dataBeaconFrom:(NSArray *)beacons forCLBeacon:(CLBeacon *)beacon;
 
 @end

@@ -5,34 +5,34 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>4F8AC340-AC49-468F-BA7A-9812D4EA3321</string>
+	<string>7AD8F9E5-7B9E-4EFE-BDA2-588BC5051385</string>
 	<key>IDESourceControlProjectName</key>
 	<string>BeaconConference</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>CCBA0CE2-3CB6-49CF-AD7B-7977ED21DB3E</key>
+		<key>CFDC17F2953893876F6C3DF85C90AB6CA6D2A6DA</key>
 		<string>https://github.com/beakons/BeaconConference-ios.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>BeaconConference.xcodeproj/project.xcworkspace</string>
+	<string>BeaconConference.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>CCBA0CE2-3CB6-49CF-AD7B-7977ED21DB3E</key>
+		<key>CFDC17F2953893876F6C3DF85C90AB6CA6D2A6DA</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/beakons/BeaconConference-ios.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>CCBA0CE2-3CB6-49CF-AD7B-7977ED21DB3E</string>
+	<string>CFDC17F2953893876F6C3DF85C90AB6CA6D2A6DA</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>CCBA0CE2-3CB6-49CF-AD7B-7977ED21DB3E</string>
+			<string>CFDC17F2953893876F6C3DF85C90AB6CA6D2A6DA</string>
 			<key>IDESourceControlWCCName</key>
 			<string>BeaconConference-ios</string>
 		</dict>

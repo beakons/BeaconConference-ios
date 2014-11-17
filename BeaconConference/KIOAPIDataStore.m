@@ -9,7 +9,8 @@
 NSString *const KIO_API_CASH_UUID_FILE = @"uuid_list.plist";
 NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
 
-
+#import "CLBeacon+Helper.h"
+#import "KIOAPIConnection.h"
 #import "KIOAPIDataStore.h"
 #import "KIOBeacon.h"
 
@@ -34,7 +35,7 @@ NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
                     errorBlock:(void(^)(NSError *error))errorBlock
 {
     if ([self cashExists:KIO_API_CASH_DATA_FILE] &&
-        [[self dateModificationCashFile:KIO_API_CASH_DATA_FILE] timeIntervalSinceNow] < 60*60*24) {
+        ABS([[self dateModificationCashFile:KIO_API_CASH_DATA_FILE] timeIntervalSinceNow]) < 60*60*24) {
         
         NSArray *array = [self parsedBeaconDataFile];
         
@@ -90,7 +91,7 @@ NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
                   errorBlock:(void(^)(NSError *error))errorBlock
 {
     if ([self cashExists:KIO_API_CASH_UUID_FILE] &&
-        [[self dateModificationCashFile:KIO_API_CASH_UUID_FILE] timeIntervalSinceNow] < 60*60*24) {
+        ABS([[self dateModificationCashFile:KIO_API_CASH_UUID_FILE] timeIntervalSinceNow]) < 60*60*24) {
         
         NSArray *array = [self parsedUUIDDataFile];
         
@@ -140,7 +141,6 @@ NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
     return dataBase[@"uuids"];
 }
 
-
 - (NSArray *)parsedBeaconDataFile
 {
     NSMutableArray *array = [NSMutableArray array];
@@ -159,7 +159,7 @@ NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
                                           [dict[KIO_BEACON_Y_KEY] intValue],
                                           [dict[KIO_BEACON_Z_KEY] intValue]);
         
-        beacon.description = dict[KIO_BEACON_DESCRIPTION_KEY];
+        beacon.beaconDescription = dict[KIO_BEACON_DESCRIPTION_KEY];
         
         beacon.objectID = dict[KIO_BEACON_OBJECT_KEY][KIO_BEACON_OBJECT__ID_KEY];
         beacon.objectName = dict[KIO_BEACON_OBJECT_KEY][KIO_BEACON_OBJECT__NAME_KEY];
@@ -202,6 +202,16 @@ NSString *const KIO_API_CASH_DATA_FILE = @"uuid_data.plist";
     NSDictionary *fileAttributes = [fileManager attributesOfItemAtPath:[self pathDataFile:fileName] error:nil];
     
     return [fileAttributes fileModificationDate];
+}
+
+- (KIOBeacon *)dataBeaconFrom:(NSArray *)beacons forCLBeacon:(CLBeacon *)beacon
+{
+    for (KIOBeacon *dataBeacon in beacons) {
+        if ([dataBeacon.beaconID isEqualToString:beacon.beaconID]) {
+            return dataBeacon;
+        }
+    }
+    return nil;
 }
 
 @end

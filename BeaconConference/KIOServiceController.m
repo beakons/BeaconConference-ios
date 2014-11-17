@@ -6,7 +6,6 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
-@import CoreLocation;
 @import CoreBluetooth;
 
 #import "KIOServiceController.h"
@@ -94,10 +93,7 @@ typedef NS_ENUM(NSUInteger, KIOLocalNotificationType){
                  beaconRegion:(CLBeaconRegion *)beaconRegion
 {
     UIApplication *application = [UIApplication sharedApplication];
-    NSArray *localNotifications = [application scheduledLocalNotifications];
-    if (localNotifications.count > 0) {
-        [application cancelAllLocalNotifications];
-    }
+    [application cancelAllLocalNotifications];
     
     if (localNotificationType == KIOLocalNotificationTypePost) {
         UILocalNotification *notification = [[UILocalNotification alloc] init];
@@ -122,6 +118,7 @@ typedef NS_ENUM(NSUInteger, KIOLocalNotificationType){
 
         [self postNotificationName:kKIOServiceBluetoothOFFNotification userInfo:nil];
         [self.locationManager stopMonitoringForRegion:self.beaconRegion];
+        [self localNotificationType:KIOLocalNotificationTypeDelete beaconRegion:self.beaconRegion];
     }
 }
 
@@ -168,6 +165,7 @@ typedef NS_ENUM(NSUInteger, KIOLocalNotificationType){
     }
 }
 
+// didDetermineState: in background mode notification
 - (void)locationManager:(CLLocationManager *)manager didDetermineState:(CLRegionState)state forRegion:(CLRegion *)region
 {
     if ([region isKindOfClass:[CLBeaconRegion class]]) {

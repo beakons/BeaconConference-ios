@@ -3,12 +3,17 @@
     {
       "idiom" : "universal",
       "scale" : "1x",
-      "filename" : "bluetooth_on.png"
+      "filename" : "tab_layers.png"
     },
     {
       "idiom" : "universal",
       "scale" : "2x",
-      "filename" : "bluetooth_on@2x.png"
+      "filename" : "tab_layers@2x.png"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x",
+      "filename" : "tab_layers@3x.png"
     }
   ],
   "info" : {

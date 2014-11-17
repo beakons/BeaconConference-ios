@@ -6,71 +6,86 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
-@import CoreLocation;
+#import "UIColor+Styling.h"
 
-#import "KIOBeaconViewController.h"
+#import "KIOListViewController.h"
 #import "KIOAPIDataStore.h"
 #import "KIOServiceController.h"
+#import "KIOAPIConnection.h"
 #import "KIOBeacon.h"
 
 
-@interface KIOBeaconViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface KIOListViewController () <UITableViewDataSource, UITableViewDelegate>
 
-@property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) UIImageView *bluetoothStateImageView;
 @property (strong, nonatomic) NSArray *beacons;
 
 @end
 
 
-@implementation KIOBeaconViewController
+@implementation KIOListViewController
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-    
+
+    /*
+    int iOSVersion = [[[UIDevice currentDevice].systemVersion substringToIndex:1] intValue];
+    if (iOSVersion < 8) {
+        CGRect statusBarRect = [UIApplication sharedApplication].statusBarFrame;
+        CGRect navBarRect = self.navigationController ? self.navigationController.navigationBar.frame : CGRectZero;
+        CGRect tabBarRect = self.tabBarController ? self.tabBarController.tabBar.frame : CGRectZero;
+        
+        self.tableView.contentInset = UIEdgeInsetsMake(CGRectGetHeight(statusBarRect) +
+                                                       CGRectGetHeight(navBarRect), 0,
+                                                       CGRectGetHeight(tabBarRect), 0);
+    }
+    */
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+
     UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(actionRefresh:) forControlEvents:UIControlEventValueChanged];
     [self.tableView addSubview:refreshControl];
     
     self.bluetoothStateImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 24, 24)];
-    self.bluetoothStateImageView.center = self.view.center;
-    [self.view addSubview:self.bluetoothStateImageView];
+    self.bluetoothStateImageView.center = self.navigationController.navigationItem.titleView.center;
+    self.navigationItem.titleView = self.bluetoothStateImageView;
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothStateNotification:) name:kKIOServiceBluetoothONNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(blutoothStateNotification:) name:kKIOServiceBluetoothOFFNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(errorNotification:) name:kKIOServiceLocationErrorNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(beaconNotification:) name:kKIOServiceBeaconsInRegionNotification object:nil];
+    [self setupAPIData];
 }
 
-- (void)viewDidAppear:(BOOL)animated
+- (void)viewWillAppear:(BOOL)animated
 {
-    [super viewDidAppear:animated];
-    [self setupAPIData];
+    [super viewWillAppear:animated];
+
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    [nc addObserver:self selector:@selector(notificationBlutoothState:) name:kKIOServiceBluetoothONNotification object:nil];
+    [nc addObserver:self selector:@selector(notificationBlutoothState:) name:kKIOServiceBluetoothOFFNotification object:nil];
+    [nc addObserver:self selector:@selector(notificationError:) name:kKIOServiceLocationErrorNotification object:nil];
+    [nc addObserver:self selector:@selector(notificationBeacons:) name:kKIOServiceBeaconsInRegionNotification object:nil];
 }
 
 - (void)setupAPIData
 {
     [[KIOAPIDataStore dataStore] loadBeaconSuccessBlock:^(NSArray *beacons) {
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            for (KIOBeacon *beacon in beacons) {
-                KIOLog(@"%@ - %@", [beacon.proximityUUID UUIDString], beacon);
-            }
-            [KIOServiceController startMonitoringBeaconWithUUID:[(KIOBeacon *)[beacons firstObject] proximityUUID]];
-        });
+        for (KIOBeacon *beacon in beacons) {
+            KIOLog(@"%@ - %@", [beacon.proximityUUID UUIDString], beacon);
+        }
+        
+        NSUUID *testUUID_1 = [[NSUUID alloc] initWithUUIDString:@"ebefd083-70a2-47c8-9837-e7b5634df524"];
+//        NSUUID *testUUID_2 = [[NSUUID alloc] initWithUUIDString:@"f7826da6-4fa2-4e98-8024-bc5b71e0893e"];
+        
+        [KIOServiceController startMonitoringBeaconWithUUID:testUUID_1]; //[(KIOBeacon *)[beacons lastObject] proximityUUID]];
         
     }
                                              errorBlock:^(NSError *error) {
         
-        dispatch_async(dispatch_get_main_queue(), ^{
             [[[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Attantion code: %i", (int)error.code]
                                         message:error.userInfo[KIO_API_ERROR_DESCRIPTION_KEY]
                                        delegate:nil
                               cancelButtonTitle:@"ok"
                               otherButtonTitles:nil] show];
-        });
     }];
 }
 
@@ -80,43 +95,41 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)dealloc
+- (void)viewWillDisappear:(BOOL)animated
 {
+    [super viewWillDisappear:animated];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 
 #pragma mark - NSNotification
 
-- (void)blutoothStateNotification:(NSNotification *)notification
+- (void)notificationBlutoothState:(NSNotification *)notification
 {
     NSString *state = notification.name;
+    UIImage *image = [[UIImage imageNamed:@"nav_bluetooth"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
     
     if ([state isEqualToString:kKIOServiceBluetoothONNotification]) {
-        UIImage *image = [[UIImage imageNamed:@"ic_bluetooth_on"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.bluetoothStateImageView.alpha = 0.3f;
         self.bluetoothStateImageView.image = image;
         self.bluetoothStateImageView.tintColor = [UIColor blueColor];
     }
     
     else if ([state isEqualToString:kKIOServiceBluetoothOFFNotification]) {
-        UIImage *image = [[UIImage imageNamed:@"ic_bluetooth_off"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-        self.bluetoothStateImageView.alpha = 0.3f;
         self.bluetoothStateImageView.image = image;
         self.bluetoothStateImageView.tintColor = [UIColor redColor];
-        self.beacons = nil;
+        self.beacons = @[];
     }
     
     [self.tableView reloadData];
 }
 
-- (void)beaconNotification:(NSNotification *)notification
+- (void)notificationBeacons:(NSNotification *)notification
 {
     self.beacons = (NSArray *)notification.userInfo[@"beacons"];
     [self.tableView reloadData];
 }
 
-- (void)errorNotification:(NSNotification *)notification
+- (void)notificationError:(NSNotification *)notification
 {
     [[[UIAlertView alloc] initWithTitle:@"Location not avalible"
                                 message:@"Pleace check location service! Or call support..."
@@ -150,10 +163,10 @@
 {
     CLBeacon *beacon = self.beacons[indexPath.row];
 
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"CellDataStyleBeacon" forIndexPath:indexPath];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"BeaconCell" forIndexPath:indexPath];
     cell.textLabel.text = [NSString stringWithFormat:@"mi:%@, mj:%@", beacon.minor, beacon.major];
     cell.detailTextLabel.text = [NSString stringWithFormat:@"ac:%2.1f, rs:%2.1f", beacon.accuracy, (float)beacon.rssi];
-    cell.backgroundColor = [self proximityColor:beacon];
+    cell.backgroundColor = [UIColor proximityBeaconColor:beacon withAlphaComponent:.6f];
     
     return cell;
 }
@@ -163,56 +176,15 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
-    CGRect rect = [UIApplication sharedApplication].statusBarFrame;
-    return CGRectGetHeight(rect);
+    return tableView.rowHeight;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
-    CGRect rect = [UIApplication sharedApplication].statusBarFrame;
-    CGRect frame = CGRectMake(0, 0, CGRectGetWidth(rect), CGRectGetHeight(rect));
+    CGRect frame = CGRectMake(0, 0, CGRectGetWidth(tableView.frame), tableView.rowHeight);
     UIView *view = [[UIView alloc] initWithFrame:frame];
     view.backgroundColor = [UIColor clearColor];
     return view;
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
-{
-    CGRect rect = [UIApplication sharedApplication].statusBarFrame;
-    return CGRectGetHeight(rect)*4;
-}
-
-- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
-{
-    CGRect rect = [UIApplication sharedApplication].statusBarFrame;
-    CGRect frame = CGRectMake(0, 0, CGRectGetWidth(rect), CGRectGetHeight(rect)*4);
-    UIView *view = [[UIView alloc] initWithFrame:frame];
-    view.backgroundColor = [UIColor clearColor];
-    
-    self.bluetoothStateImageView.center = view.center;
-    [view addSubview:self.bluetoothStateImageView];
-    return view;
-}
-
-
-#pragma mark - Styling
-
-- (UIColor *)proximityColor:(CLBeacon *)beacon
-{
-    switch (beacon.proximity) {
-        case CLProximityUnknown:
-            return [UIColor lightGrayColor];
-            break;
-        case CLProximityImmediate:
-            return [UIColor redColor];
-            break;
-        case CLProximityNear:
-            return [UIColor greenColor];
-            break;
-        case CLProximityFar:
-            return [UIColor yellowColor];
-            break;
-    }
 }
 
 @end

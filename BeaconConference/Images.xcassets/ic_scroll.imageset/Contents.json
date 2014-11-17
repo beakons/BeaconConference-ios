@@ -3,12 +3,17 @@
     {
       "idiom" : "universal",
       "scale" : "1x",
-      "filename" : "map_view.png"
+      "filename" : "nav_banner.png"
     },
     {
       "idiom" : "universal",
       "scale" : "2x",
-      "filename" : "map_view@2x.png"
+      "filename" : "nav_banner@2x.png"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x",
+      "filename" : "nav_banner@3x.png"
     }
   ],
   "info" : {

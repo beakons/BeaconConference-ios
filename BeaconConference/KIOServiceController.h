@@ -6,13 +6,14 @@
 //  Copyright (c) 2014 Kirill Osipov. All rights reserved.
 //
 
+@import CoreLocation;
+
 extern NSString *const kKIOServiceBluetoothONNotification;
 extern NSString *const kKIOServiceBluetoothOFFNotification;
 extern NSString *const kKIOServiceEnterBeaconRegionNotification;
 extern NSString *const kKIOServiceExitBeaconRegionNotification;
 extern NSString *const kKIOServiceBeaconsInRegionNotification;
 extern NSString *const kKIOServiceLocationErrorNotification;
-
 
 @interface KIOServiceController : NSObject
 
